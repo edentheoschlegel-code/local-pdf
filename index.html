@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://da08ctfrofx1b.cloudfront.net; font-src 'self'; connect-src 'self' https://api.revenuecat.com https://e.revenue.cat https://js.stripe.com; worker-src 'self' blob:; frame-src https://js.stripe.com; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Local PDF — Merge, Split & Organize PDFs in Your Browser</title>
+  <meta name="description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="canonical" href="https://localpdfapp.com/">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="assets/manifest.webmanifest">
+  <!-- Open Graph / social share -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Local PDF">
+  <meta property="og:url" content="https://localpdfapp.com/">
+  <meta property="og:title" content="Local PDF — Every PDF tool, 100% in your browser">
+  <meta property="og:description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <meta property="og:image" content="https://localpdfapp.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Local PDF — 100% private, on your device">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Local PDF — Every PDF tool, 100% in your browser">
+  <meta name="twitter:description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <meta name="twitter:image" content="https://localpdfapp.com/assets/og-image.png">
+  <link rel="stylesheet" href="styles.css?v=0153bd2abb">
+  <!-- Apply saved/system theme before first paint (CSP-safe external script). -->
+  <script src="theme-boot.js?v=0153bd2abb"></script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Local PDF","url":"https://localpdfapp.com/","description":"Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.","applicationCategory":"UtilitiesApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs entirely in the browser — no account, no upload.","publisher":{"@type":"Organization","name":"Local PDF"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <div class="topbar">
+    <button type="button" class="logo" id="logo" aria-label="Local PDF — back to all tools">
+      <img src="assets/brand-icon-512.png" alt="Local PDF logo" class="brand-logo" width="30" height="30">
+      <b>Local <span class="wm-accent">PDF</span></b>
+    </button>
+    <div class="topbar-right">
+      <!-- Quiet "Unlock Pro" front door to the existing paywall. Hidden for owners
+           (app.js hides it whenever Billing.isPro() is true). Opens showProModal(). -->
+      <button type="button" class="unlock-pro hidden" id="unlockProBtn" title="Batch-process a whole folder into one ZIP — $9.99 · one-time" aria-label="Unlock Pro — batch-process a whole folder into one ZIP, $9.99 one-time">
+        <svg class="unlock-pro-crown" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5 7.5 12 12 5l4.5 7L21 8.5 19.2 17a1.5 1.5 0 0 1-1.47 1.19H6.27A1.5 1.5 0 0 1 4.8 17z"/></svg>
+        <span class="unlock-pro-text">
+          <span class="unlock-pro-label">Unlock Pro</span>
+          <span class="unlock-pro-price">$9.99 · one-time</span>
+        </span>
+      </button>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch theme"></button>
+    </div>
+  </div>
+
+  <!-- ── HUB ─────────────────────────────────────────────────────── -->
+  <div id="hub">
+    <div class="hero">
+      <h1>Every PDF tool, <span class="accent">100% in your browser</span></h1>
+      <p>Everything you need to work with PDFs — right here, offline and private.</p>
+      <div class="reassure">🔒 Everything runs on your device. Your files are never sent anywhere.</div>
+    </div>
+    <div class="wrap" id="mainContent" tabindex="-1">
+      <div class="tool-search">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="toolSearch" placeholder="Search tools…" aria-label="Search tools" autocomplete="off">
+      </div>
+      <p id="toolSearchEmpty" class="tool-search-empty hidden" role="status">No tools match your search — try a different word.</p>
+      <div id="toolGrid" class="tool-sections"></div>
+    </div>
+    <div class="trust-band" aria-label="Privacy promises">
+      <div class="trust-item">
+        <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22"/><path d="M16.7 16.7A10.9 10.9 0 0 1 12 18c-5.5 0-10-4.5-10-4.5a20 20 0 0 1 4.2-4.9"/><path d="M9.9 5.1A10.9 10.9 0 0 1 12 5c5.5 0 10 4.5 10 4.5a19.9 19.9 0 0 1-2.9 3.6"/></svg></span>
+        <div class="trust-text"><b>Works Offline</b><span>Once loaded, everything runs on your device — no internet needed.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+        <div class="trust-text"><b>Your Data Stays</b><span>Files are never uploaded, shared, or stored anywhere else.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <div class="trust-text"><b>No Tracking</b><span>No analytics, no ads, no accounts, no sign-up.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg></span>
+        <div class="trust-text"><b>Open technology</b><span>Built on open-source pdf-lib, pdf.js &amp; Tesseract, bundled locally.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WORKSPACE (filled per-tool) ─────────────────────────────── -->
+  <div id="workspace" class="workspace hidden"></div>
+
+  <footer>
+    Local PDF — a private, in-browser PDF toolbox. Your files stay on your device.<br>
+    Built with <a href="https://pdf-lib.js.org" target="_blank" rel="noopener">pdf-lib</a> &amp; <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">pdf.js</a>, bundled locally.<br>
+    <a href="privacy.html">Privacy</a> · <a href="https://edenapps.app/terms.html" target="_blank" rel="noopener">Terms</a> · <a href="support.html">Help</a><br>
+    <span class="footer-byline">An Eden Apps app · <a href="https://edenapps.app" target="_blank" rel="noopener">edenapps.app</a></span>
+    <button type="button" id="footerRestoreLink" class="restore-link" style="margin-top: 8px;">Already bought Pro? Restore with a code</button>
+    <button type="button" id="footerLicenseLink" class="restore-link hidden">View your Pro license card</button>
+  </footer>
+
+  <!-- Persistent screen-reader live regions. status()/clearInfo() mirror the
+       visible status text here so assistive tech announces changes even though
+       the visible .status node is created/removed per tool. -->
+  <div id="srPolite" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="srAssertive" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+  <script src="lib/pdf-lib.min.js"></script>
+  <script src="lib/pdf.min.js"></script>
+  <script src="lib/jszip.min.js"></script>
+  <!-- Tesseract.js OCR engine (63KB loader; the ~13MB WASM core + language model
+       lazy-load only when the OCR tool actually runs). Vendored fully offline —
+       no CDN — see lib/tesseract/. Requires 'wasm-unsafe-eval' in the CSP above. -->
+  <script src="lib/tesseract/tesseract.min.js"></script>
+  <script src="billing.js?v=0153bd2abb"></script>
+  <script src="app.js?v=0153bd2abb"></script>
+</body>
+</html>

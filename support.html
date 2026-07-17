@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Help — Local PDF</title>
+<meta name="description" content="Get help with Local PDF — contact support and find answers about Pro purchases, restores, refunds, and common questions.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://localpdfapp.com/support.html">
+<script>try{var n=(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform())||location.protocol==='capacitor:'||location.hostname==='localhost'||/[?&]native=1/.test(location.search);if(n)document.documentElement.className+=' native';}catch(e){}</script>
+<style>
+  :root {
+    --brand: #e11d48; --brand-dark: #be123c; --brand-soft: #fff1f2;
+    --ink: #1a1a2e; --muted: #6b7280; --line: #e7e8ee; --bg: #f7f7fb; --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink); background: var(--bg); margin: 0; line-height: 1.6;
+  }
+  .topbar {
+    padding: max(18px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 18px max(24px, env(safe-area-inset-left));
+    border-bottom: 1px solid var(--line); background: rgba(255,255,255,.85);
+    backdrop-filter: saturate(180%) blur(12px); position: sticky; top: 0;
+  }
+  .topbar a { color: var(--ink); text-decoration: none; font-weight: 800; font-size: 17px; letter-spacing: -.3px; }
+  .topbar a .accent { color: var(--brand); }
+  main { max-width: 680px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 30px; letter-spacing: -.5px; margin: 0 0 6px; }
+  .sub { color: var(--muted); font-size: 15.5px; margin-bottom: 28px; }
+  h2 { font-size: 19px; margin: 34px 0 10px; }
+  p, li { color: #333; font-size: 15.5px; }
+  /* Platform-aware payment/refund copy: web shows Stripe + email-us; the iOS app shows Apple refunds. */
+  .only-ios { display: none; }
+  html.native .only-web { display: none; }
+  html.native .only-ios { display: block; }
+  ul { padding-left: 22px; }
+  a { color: var(--brand); }
+  code {
+    background: var(--brand-soft); color: var(--brand-dark);
+    padding: 2px 6px; border-radius: 5px; font-size: 13.5px;
+    font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 22px; margin: 20px 0;
+  }
+  .btn {
+    display: inline-block; background: var(--brand); color: #fff; font-weight: 700;
+    padding: 11px 20px; border-radius: 10px; margin-top: 6px;
+  }
+  /* Quiet fallback under the mailto button — for anyone whose device has no mail app. */
+  .copy-addr {
+    display: block; background: none; border: none; padding: 0; margin: 10px 0 0;
+    font: inherit; font-size: 13.5px; color: var(--muted);
+    text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+  }
+  /* Dark mode follows the OS (this page has no theme toggle) — tokens mirror
+     the app's dark theme so it matches coming from the main page. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #fb7185; --brand-dark: #f43f5e; --brand-soft: #2a1a20;
+      --ink: #e8e8ed; --muted: #a1a3ad; --line: #2c2e36; --bg: #15161a; --card: #1c1d22;
+    }
+    .topbar { background: rgba(24,25,30,.85); }
+    p, li { color: #c9cad1; }
+    /* Keep the white button label readable — same solid rose the app uses on dark. */
+    .btn { background: linear-gradient(135deg, #e11d48, #be123c); }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar"><a href="./">← Local <span class="accent">PDF</span></a></div>
+  <main>
+    <h1>Help</h1>
+    <p class="sub">Questions, bug reports, or feature requests — here's how to reach us.</p>
+
+    <div class="card">
+      <h2 style="margin-top:0">Contact</h2>
+      <p>Email <strong>support@localpdfapp.com</strong> and we'll get back to you.</p>
+      <a class="btn" href="mailto:support@localpdfapp.com">Email support</a>
+      <button type="button" class="copy-addr" onclick="copyAddress(this)">Copy address</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Request a refund</h2>
+      <div class="only-web">
+      <p>30-day money-back guarantee. Email us and a real person reviews it — no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5–10 business days to appear on your statement.</p>
+      <p>To help us find your purchase quickly, please paste your <strong>restore code</strong> (it looks like <code>LPDF-XXXX-XXXX-XXXX</code>) and the <strong>email on your Stripe receipt</strong> into the message.</p>
+      <a class="btn" href="mailto:support@localpdfapp.com?subject=Refund%20request%20%E2%80%94%20Local%20PDF%20Pro&amp;body=Hi%20Local%20PDF%20team%2C%0A%0AI'd%20like%20to%20request%20a%20refund%20for%20my%20Local%20PDF%20Pro%20purchase.%0A%0AMy%20restore%20code%3A%20%0AEmail%20on%20my%20Stripe%20receipt%3A%20%0AReason%20(optional)%3A%20%0A%0AThanks!%0A">Request a refund</a>
+      </div>
+      <div class="only-ios">
+      <p>Refunds on iPhone &amp; iPad are handled by Apple. Apple manages all App Store purchases, so refund requests go directly to Apple — it's quick, and Apple reviews and processes it.</p>
+      <a class="btn" href="https://reportaproblem.apple.com" target="_blank" rel="noopener">Request a refund from Apple</a>
+      </div>
+    </div>
+
+    <h2>Common questions</h2>
+
+    <p><strong>Where do my files go when I use Local PDF?</strong><br>
+    Nowhere but your own device. Every tool works on your file right on your device and hands the result straight back to you — your PDFs are never uploaded, and Local PDF doesn't keep a copy or a history. See the <a href="privacy.html">Privacy Policy</a> for the full detail.</p>
+
+    <p class="only-web"><strong>Does the OCR ("Scan to text") send my scans somewhere to be read?</strong><br>
+    No. The recognition runs entirely on your device. The first time you use OCR, a one-time ~13&nbsp;MB engine and English language model download from Local PDF's own site and are cached for offline use — after that it works with no network at all, and your scanned pages never leave your device.</p>
+    <p class="only-ios"><strong>Does the OCR ("Scan to text") send my scans somewhere to be read?</strong><br>
+    No. The recognition runs entirely on your device. The engine and English language model are bundled with the app, so nothing is downloaded — OCR works with no network at all, and your scanned pages never leave your device.</p>
+
+    <p><strong>Will my work sync to my other devices?</strong><br>
+    No — by design. Local PDF has no account and no cloud, and it doesn't store your documents at all. To move a result to another device, just save it and share it over (AirDrop, email, etc.).</p>
+
+    <p class="only-web"><strong>Is there a paid plan?</strong><br>
+    Local PDF is free to use, with an optional <strong>Pro</strong> unlock: a <strong>one-time $9.99 purchase</strong> (not a subscription). Pro adds <strong>advanced compression levels</strong> (the Light and Maximum options in Compress — the default Recommended level stays free), <strong>batch processing</strong> — running Compress or PDF → Images across many files at once and getting them back as a single ZIP — plus a <strong>“Download all as ZIP”</strong> option when splitting a PDF into separate pages or exporting a PDF as page images. Every other tool is free and unlimited. Checkout is handled securely by Stripe (via RevenueCat) — the processor only ever sees the email for your receipt and your payment method, never your files. Pro comes with a <strong>30-day money-back guarantee</strong>: if it's not for you, email <a href="mailto:support@localpdfapp.com">support@localpdfapp.com</a> within 30 days for a full refund. Once approved, your refund takes about <strong>5–10 business days</strong> to appear on your statement.</p>
+    <p class="only-ios"><strong>Is there a paid plan?</strong><br>
+    Local PDF is free to use, with an optional <strong>Pro</strong> unlock: a <strong>one-time $9.99 purchase</strong> (not a subscription; the App Store shows the price in your local currency). Pro adds <strong>advanced compression levels</strong> (the Light and Maximum options in Compress — the default Recommended level stays free), <strong>batch processing</strong> — running Compress or PDF → Images across many files at once and getting them back as a single ZIP — plus a <strong>“Download all as ZIP”</strong> option when splitting a PDF into separate pages or exporting a PDF as page images. Every other tool is free and unlimited. On iPhone and iPad, checkout is handled by <strong>Apple</strong> through the App Store — we never see your card, name, or email. If Pro isn't for you, you can <strong>request a refund from Apple</strong> at <a href="https://reportaproblem.apple.com" target="_blank" rel="noopener">reportaproblem.apple.com</a>; Apple reviews and processes it.</p>
+
+    <p class="only-web"><strong>How do I get Pro back in a new browser?</strong><br>
+    When you unlock Pro, you're given a one-time <strong>restore code</strong> (it looks like <code>LPDF-XXXX-XXXX-XXXX</code>) and a license card you can save. Since there are no accounts, that code is how you re-unlock Pro in another browser — just keep it somewhere safe, along with your Stripe receipt email as proof of purchase. The iPhone and iPad app sells Pro separately through the App Store. Lost your code? Email <a href="mailto:support@localpdfapp.com">support@localpdfapp.com</a> and we'll help.</p>
+    <p class="only-ios"><strong>How do I get Pro back on a new device?</strong><br>
+    Your Pro purchase lives with your Apple Account. On a new iPhone or iPad, just tap <strong>Restore Purchases</strong> in the app and Pro comes right back — your Apple receipt is your proof of purchase. Bought on the web? Web and App Store purchases are separate — your restore code works in your browser. Questions? Email <a href="mailto:support@localpdfapp.com">support@localpdfapp.com</a> and we'll help.</p>
+
+    <p class="only-web"><strong>Does Local PDF work offline?</strong><br>
+    Yes, once loaded. There's no server it depends on for day-to-day use. (Buying or restoring Pro — and the one-time OCR engine download — are the only things that need a connection.)</p>
+    <p class="only-ios"><strong>Does Local PDF work offline?</strong><br>
+    Yes. There's no server it depends on for day-to-day use. (Buying Pro and the app's quick launch-time check of your purchase status are the only things that use a connection.)</p>
+
+    <h2>Something not covered here?</h2>
+    <p>Email <a href="mailto:support@localpdfapp.com">support@localpdfapp.com</a> — happy to help.</p>
+  </main>
+  <script>
+    /* Copies the support address for anyone whose device doesn't open mailto: links. */
+    function copyAddress(btn) {
+      var addr = 'support@localpdfapp.com';
+      var done = function () {
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = 'Copy address'; }, 2000);
+      };
+      var fallback = function () { window.prompt('Copy the address:', addr); };
+      try {
+        navigator.clipboard.writeText(addr).then(done, fallback);
+      } catch (e) {
+        fallback();
+      }
+    }
+  </script>
+</body>
+</html>
