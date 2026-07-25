@@ -227,15 +227,15 @@ const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && wi
 // The live web build never enters this branch, so its copy is byte-for-byte unchanged.
 if (IS_NATIVE) {
   const applyNativeCopy = () => {
-    const acc = document.querySelector("#hub .hero h1 .accent");
-    if (acc && /in your browser/i.test(acc.textContent)) acc.textContent = "100% on your device";
+    // (The hero accent formerly needed an "in your browser" → device rewrite here; the
+    // 2026-07 copy pass made the base copy "right on your device", so no swap is needed.)
     const ft = document.querySelector("footer");
     if (ft && /in-browser/i.test(ft.innerHTML)) ft.innerHTML = ft.innerHTML.replace(/a private, in-browser PDF toolbox/i, "a private, on-device PDF toolbox");
     // The web trust band says "Works Offline … once loaded" because the web OCR engine is a
-    // one-time download. On iOS the engine ships inside the app, so the full claim is true.
+    // one-time download. On iOS the engine ships inside the app, so the stronger subtitle is
+    // true there — the heading stays "Works Offline" on both (no "100%" superlatives).
     const tb = Array.from(document.querySelectorAll(".trust-band .trust-text b")).find(b => /works offline/i.test(b.textContent));
     if (tb) {
-      tb.textContent = "100% Offline";
       const sp = tb.nextElementSibling;
       if (sp && sp.tagName === "SPAN") sp.textContent = "No internet required — everything runs on your device.";
     }
