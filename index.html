@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://da08ctfrofx1b.cloudfront.net; font-src 'self'; connect-src 'self' https://api.revenuecat.com https://e.revenue.cat https://js.stripe.com; worker-src 'self' blob:; frame-src https://js.stripe.com; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Local PDF — Merge, Split & Organize PDFs in Your Browser</title>
-  <meta name="description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <title>Local PDF — Merge, Split & Organize PDFs on Your Device</title>
+  <meta name="description" content="Merge, split, organize, and convert PDFs right on your device. Your files never leave your device — no uploads, no accounts, no tracking.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
@@ -18,20 +18,20 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Local PDF">
   <meta property="og:url" content="https://localpdfapp.com/">
-  <meta property="og:title" content="Local PDF — Every PDF tool, 100% in your browser">
-  <meta property="og:description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <meta property="og:title" content="Local PDF — Every PDF tool, right on your device">
+  <meta property="og:description" content="Merge, split, organize, and convert PDFs right on your device. Your files never leave your device — no uploads, no accounts, no tracking.">
   <meta property="og:image" content="https://localpdfapp.com/assets/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Local PDF — 100% private, on your device">
+  <meta property="og:image:alt" content="Local PDF — private, on your device">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Local PDF — Every PDF tool, 100% in your browser">
-  <meta name="twitter:description" content="Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.">
+  <meta name="twitter:title" content="Local PDF — Every PDF tool, right on your device">
+  <meta name="twitter:description" content="Merge, split, organize, and convert PDFs right on your device. Your files never leave your device — no uploads, no accounts, no tracking.">
   <meta name="twitter:image" content="https://localpdfapp.com/assets/og-image.png">
-  <link rel="stylesheet" href="styles.css?v=0153bd2abb">
+  <link rel="stylesheet" href="styles.css?v=f15c8cd923">
   <!-- Apply saved/system theme before first paint (CSP-safe external script). -->
-  <script src="theme-boot.js?v=0153bd2abb"></script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Local PDF","url":"https://localpdfapp.com/","description":"Merge, split, organize, and convert PDFs entirely in your browser. Your files never leave your device — no uploads, no accounts, no tracking.","applicationCategory":"UtilitiesApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs entirely in the browser — no account, no upload.","publisher":{"@type":"Organization","name":"Local PDF"}}</script>
+  <script src="theme-boot.js?v=f15c8cd923"></script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Local PDF","url":"https://localpdfapp.com/","description":"Merge, split, organize, and convert PDFs right on your device. Your files never leave your device — no uploads, no accounts, no tracking.","applicationCategory":"UtilitiesApplication","operatingSystem":"Web, iOS","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs on your device — no account, no upload.","publisher":{"@type":"Organization","name":"Local PDF"}}</script>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -57,7 +57,7 @@
   <!-- ── HUB ─────────────────────────────────────────────────────── -->
   <div id="hub">
     <div class="hero">
-      <h1>Every PDF tool, <span class="accent">100% in your browser</span></h1>
+      <h1>Every PDF tool, <span class="accent">right on your device</span></h1>
       <p>Everything you need to work with PDFs — right here, offline and private.</p>
       <div class="reassure">🔒 Everything runs on your device. Your files are never sent anywhere.</div>
     </div>
@@ -80,7 +80,7 @@
       </div>
       <div class="trust-item">
         <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
-        <div class="trust-text"><b>No Tracking</b><span>No analytics, no ads, no accounts, no sign-up.</span></div>
+        <div class="trust-text"><b>No Tracking</b><span>No ads, no accounts, no sign-up, no tracking of your files.</span></div>
       </div>
       <div class="trust-item">
         <span class="trust-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg></span>
@@ -114,7 +114,7 @@
        lazy-load only when the OCR tool actually runs). Vendored fully offline —
        no CDN — see lib/tesseract/. Requires 'wasm-unsafe-eval' in the CSP above. -->
   <script src="lib/tesseract/tesseract.min.js"></script>
-  <script src="billing.js?v=0153bd2abb"></script>
-  <script src="app.js?v=0153bd2abb"></script>
+  <script src="billing.js?v=f15c8cd923"></script>
+  <script src="app.js?v=f15c8cd923"></script>
 </body>
 </html>
