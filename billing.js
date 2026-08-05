@@ -28053,6 +28053,11 @@ but received
           purchaseLockUntil = 0;
           return { ok: false, error: "Pro isn't available for purchase right now \u2014 try again shortly." };
         }
+        if (isZeroPriced(pkg.product)) {
+          purchaseLockUntil = 0;
+          console.error("Local PDF: refusing purchase \u2014 the storefront reports a zero price for the Pro package");
+          return { ok: false, error: "Pro isn't available for purchase right now \u2014 try again shortly." };
+        }
         const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
         cachedProStatus = readEntitlement(customerInfo);
         if (cachedProStatus) {
@@ -28248,6 +28253,24 @@ but received
     const ok2 = await refreshProStatus();
     return { ok: ok2 };
   }
+  function isRealPrice(product) {
+    if (!product) return false;
+    const s = product.priceString;
+    if (typeof s !== "string" || !s) return false;
+    const n = product.price;
+    if (typeof n === "number" && Number.isFinite(n)) return n > 0;
+    const digits = s.replace(/\D/g, "");
+    return digits.length > 0 && /[1-9]/.test(digits);
+  }
+  function isZeroPriced(product) {
+    if (!product) return false;
+    const n = product.price;
+    if (typeof n === "number" && Number.isFinite(n)) return n <= 0;
+    const s = product.priceString;
+    if (typeof s !== "string" || !s) return false;
+    const digits = s.replace(/\D/g, "");
+    return digits.length > 0 && !/[1-9]/.test(digits);
+  }
   async function getNativeLocalizedPrice() {
     if (!IS_NATIVE) return null;
     try {
@@ -28256,7 +28279,8 @@ but received
         const offerings = await Purchases.getOfferings();
         const cur = offerings && offerings.current;
         const pkg = cur && cur.lifetime || cur && cur.availablePackages && cur.availablePackages[0] || null;
-        return pkg && pkg.product && pkg.product.priceString || null;
+        const product = pkg && pkg.product;
+        return isRealPrice(product) ? product.priceString : null;
       })();
       fetchPrice.catch(() => {
       });
@@ -28328,7 +28352,7 @@ but received
     ctx.stroke();
     ctx.textAlign = "left";
     ctx.fillStyle = "#6b7280";
-    const note = "This code restores your Pro purchase on any device. Keep it private \u2014 anyone with it gets Pro.";
+    const note = "Restores Pro in your web browser, on any device. Keep it private \u2014 anyone with it gets Pro.";
     fitFont(ctx, note, 400, 20, SANS, W - PAD * 2);
     ctx.fillText(note, PAD, 542);
     ctx.fillStyle = "#be123c";

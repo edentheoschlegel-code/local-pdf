@@ -354,13 +354,15 @@ function fireConfetti() {
 // case the amber "create your restore code" flow (item 2) is shown instead of the box.
 function showCelebrationModal(code) {
   markCelebrated();
-  fireConfetti();
+  // fireConfetti() call removed 2026-08-05 at Eden's request — it drew ON TOP of the
+  // modal (the layer sat above it in the stacking order) and covered the feature list.
+  // The function below is left in place, unused, so it can be restored deliberately.
   const backdrop = el("div", "modal-backdrop");
   const modal = el("div", "modal pro-modal license-modal celebrate-modal");
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
   modal.setAttribute("aria-labelledby", "celebrateTitle");
-  const h = txt("h3", null, "It's yours — forever."); h.id = "celebrateTitle";
+  const h = txt("h3", null, "Pro, unlocked."); h.id = "celebrateTitle";
   modal.appendChild(h);
   modal.appendChild(txt("p", "hint", IS_NATIVE
     ? "Thank you for supporting Local PDF — Pro is unlocked on this device and it's yours to keep."
@@ -375,7 +377,7 @@ function showCelebrationModal(code) {
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(txt("p", "hint celebrate-sub", "What you just unlocked:"));
   modal.appendChild(list);
-  announce("Pro unlocked — it's yours forever.", "ok");
+  announce("Pro unlocked.", "ok");
 
   const msgHost = el("div", "pro-msg");
   const codeSection = el("div", "celebrate-code-section");
@@ -832,7 +834,7 @@ function showProModal(context) {
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(list);
   // Durable one-time reassurance (no "subscription"/"plan"/"trial"/"per month").
-  modal.appendChild(txt("p", "hint pro-durable", "One-time unlock — yours forever. No subscription, no per-file fees."));
+  modal.appendChild(txt("p", "hint pro-durable", "One purchase, not a subscription — you won't be charged again, and there are no per-file fees."));
   // Pre-frame the checkout: reassure BEFORE the buy button so the pay moment feels
   // safe. Small muted hint text, consistent with the app's .hint styling.
   if (IS_NATIVE) {
