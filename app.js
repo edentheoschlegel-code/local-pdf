@@ -237,22 +237,22 @@ if (IS_NATIVE) {
     const tb = Array.from(document.querySelectorAll(".trust-band .trust-text b")).find(b => /works offline/i.test(b.textContent));
     if (tb) {
       const sp = tb.nextElementSibling;
-      if (sp && sp.tagName === "SPAN") sp.textContent = "No internet required — everything runs on your device.";
+      if (sp && sp.tagName === "SPAN") sp.textContent = "No internet required. Everything runs on your device.";
     }
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyNativeCopy);
   else applyNativeCopy();
 }
-const REFUND_EXPECTATION = "30-day money-back guarantee. Email us and a real person reviews it — no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5–10 business days to appear on your statement.";
+const REFUND_EXPECTATION = "30-day money-back guarantee. Email us and a real person reviews it, no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5 to 10 business days to appear on your statement.";
 function buildRefundMailto() {
   const code = safeBilling(() => Billing.getRestoreCode(), null) || "(no code on this device)";
-  const subject = "Refund request — Local PDF Pro";
+  const subject = "Refund request: Local PDF Pro";
   const body =
     "Hi Local PDF team,\n\n" +
     "I'd like to request a refund for my Local PDF Pro purchase.\n\n" +
     "My restore code: " + code + "\n" +
     "Reason (optional): \n\n" +
-    "Thanks — I understand a real person will review this and reply.\n";
+    "Thanks. I understand a real person will review this and reply.\n";
   return "mailto:" + SUPPORT_EMAIL +
     "?subject=" + encodeURIComponent(subject) +
     "&body=" + encodeURIComponent(body);
@@ -306,7 +306,7 @@ function showAccessEndedNotice() {
   bar.setAttribute("role", "status");
   // Says WHY (a verified revocation is, in practice, a refund) and gives an in-banner
   // escape hatch, so a surprised owner isn't left guessing with no path to a human.
-  bar.appendChild(txt("span", null, "Your Local PDF Pro access has ended — this usually follows a refund. If it's unexpected, email support@localpdfapp.com and we'll sort it out. Everything you made is safe and still here, and every free feature keeps working — you're always welcome back."));
+  bar.appendChild(txt("span", null, "Your Local PDF Pro access has ended. This usually follows a refund. If it's unexpected, email support@localpdfapp.com and we'll sort it out. Everything you made is safe and still here, and every free feature keeps working. You're always welcome back."));
   const x = txt("button", "save-nag-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Dismiss");
   x.onclick = () => bar.remove();
   bar.append(x);
@@ -365,14 +365,14 @@ function showCelebrationModal(code) {
   const h = txt("h3", null, "Pro, unlocked."); h.id = "celebrateTitle";
   modal.appendChild(h);
   modal.appendChild(txt("p", "hint", IS_NATIVE
-    ? "Thank you for supporting Local PDF — Pro is unlocked on this device and it's yours to keep."
-    : "Thank you for supporting Local PDF — Pro is unlocked on this browser and it's yours to keep."));
+    ? "Thank you for supporting Local PDF."
+    : "Thank you for supporting Local PDF. Pro is unlocked on this browser."));
   const list = el("ul", "pro-features celebrate-unlocked");
   // Matches the paywall exactly. No "batch split" — batch is compress/convert only.
   // The ZIP bullet's "Split" is the legit single-file per-page "Download all as ZIP".
   [
-    "Advanced compress — Light or Maximum levels to squeeze PDFs as small as they'll go",
-    "Batch-process a whole folder — compress or convert dozens of PDFs at once, back in one ZIP",
+    "Advanced compress. Light or Maximum levels to squeeze PDFs as small as they'll go",
+    "Batch-process a whole folder. Compress or convert dozens of PDFs at once, back in one ZIP",
     "“Download all as one ZIP” in Split and PDF → Images",
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(txt("p", "hint celebrate-sub", "What you just unlocked:"));
@@ -385,16 +385,16 @@ function showCelebrationModal(code) {
 
   if (code) {
     codeSection.appendChild(txt("h4", "celebrate-code-head", "Save your restore code"));
-    codeSection.appendChild(txt("p", "hint", "Local PDF has no accounts, so this code is how you unlock Pro in another browser. Save it somewhere safe — photos, a password manager, or the license card below. (The iPhone and iPad app sells Pro separately through the App Store.)"));
+    codeSection.appendChild(txt("p", "hint", "Local PDF has no accounts, so this code is how you unlock Pro in another browser. Save it somewhere safe, such as your photos, a password manager, or the license card below. (The iPhone and iPad app sells Pro separately through the App Store.)"));
     // The code on screen comes from memory (the purchase result), so it shows even when this
     // browser can't persist it — in that case it truly won't be here next visit: say so once.
-    if (!storageProbeOk()) codeSection.appendChild(txt("p", "hint", "This browser isn't saving data, so this code won't be here on your next visit — copy or save it now."));
+    if (!storageProbeOk()) codeSection.appendChild(txt("p", "hint", "This browser isn't saving data, so this code won't be here on your next visit. Copy or save it now."));
     const codeBox = el("div", "restore-code-box");
     codeBox.appendChild(txt("code", "restore-code-value", code));
     const copyBtn = txt("button", "btn ghost sm", "Copy"); copyBtn.type = "button";
     copyBtn.onclick = async () => {
       try { await navigator.clipboard.writeText(code); copyBtn.textContent = "Copied!"; }
-      catch { copyBtn.textContent = "Couldn't copy — select and copy manually"; }
+      catch { copyBtn.textContent = "Couldn't copy. Select and copy manually"; }
       setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
     };
     codeBox.appendChild(copyBtn);
@@ -403,7 +403,7 @@ function showCelebrationModal(code) {
   } else if (IS_NATIVE) {
     // Apple IAP mints no restore CODE — cross-device restore is handled by the Apple ID +
     // "Restore Purchases", so skip the mint section entirely and show a clean success.
-    codeSection.appendChild(txt("p", "hint", "Pro is unlocked on this device — and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
+    codeSection.appendChild(txt("p", "hint", "Pro is unlocked on this device, and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
   } else {
     renderAmberMintFlow(codeSection);
   }
@@ -423,7 +423,7 @@ function showCelebrationModal(code) {
 function renderAmberMintFlow(host) {
   host.innerHTML = "";
   const note = el("div", "amber-note");
-  note.appendChild(txt("p", null, "One thing — we couldn't create your restore code just now. Pro already works on this browser. Tap to create your code for other browsers."));
+  note.appendChild(txt("p", null, "One thing. We couldn't create your restore code just now. Pro already works on this browser. Tap to create your code for other browsers."));
   const mintBtn = txt("button", "btn", "Create my restore code"); mintBtn.type = "button";
   mintBtn.onclick = async () => {
     mintBtn.disabled = true; mintBtn.textContent = "Creating…";
@@ -438,7 +438,7 @@ function renderAmberMintFlow(host) {
       const copyBtn = txt("button", "btn ghost sm", "Copy"); copyBtn.type = "button";
       copyBtn.onclick = async () => {
         try { await navigator.clipboard.writeText(res.restoreCode); copyBtn.textContent = "Copied!"; }
-        catch { copyBtn.textContent = "Couldn't copy — select and copy manually"; }
+        catch { copyBtn.textContent = "Couldn't copy. Select and copy manually"; }
         setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
       };
       codeBox.appendChild(copyBtn);
@@ -446,7 +446,7 @@ function renderAmberMintFlow(host) {
       host.appendChild(licenseCardBlock(res.restoreCode));
       refreshAfterProChange();
     } else {
-      note.replaceChildren(txt("p", null, "No luck yet — Pro still works here; we'll offer again next visit, and support@localpdfapp.com + your receipt always work."));
+      note.replaceChildren(txt("p", null, "No luck yet. Pro still works here; we'll offer again next visit, and support@localpdfapp.com + your receipt always work."));
     }
   };
   note.appendChild(mintBtn);
@@ -463,7 +463,7 @@ function maybeShowSelfHealNag() {
   const code = safeBilling(() => Billing.getRestoreCode(), null);
   if (!isPro || code) return;
   const bar = el("div", "save-nag"); bar.id = "proHealBanner";
-  bar.appendChild(txt("span", null, "You're Pro on this browser — create your restore code so you can unlock other browsers too."));
+  bar.appendChild(txt("span", null, "You're Pro on this browser. Create your restore code so you can unlock other browsers too."));
   const make = txt("button", "save-nag-view", "Create code"); make.type = "button";
   make.onclick = async () => {
     make.disabled = true; make.textContent = "Creating…";
@@ -543,7 +543,7 @@ function licenseCardBlock(code) {
   if (!canvas) {
     // Degrade gracefully if the card renderer throws — the code is still shown
     // elsewhere in the modal; just note the card image couldn't be drawn.
-    wrap.appendChild(txt("p", "hint", "Couldn't draw the license-card image here — your restore code above is all you need to restore Pro."));
+    wrap.appendChild(txt("p", "hint", "Couldn't draw the license-card image here. Your restore code above is all you need to restore Pro."));
     return wrap;
   }
   canvas.className = "license-card-canvas";
@@ -570,8 +570,8 @@ function showLicenseCardModal() {
   const _h = txt("h3", null, "Your Pro license card"); _h.id = "licenseCardTitle";
   modal.appendChild(_h);
   modal.appendChild(txt("p", "hint", IS_NATIVE
-    ? "Save this card somewhere safe — photos, a password manager, or print it. It's your key to restoring Pro in any browser. Keep your App Store receipt email too as proof of purchase. Questions? support@localpdfapp.com."
-    : "Save this card somewhere safe — photos, a password manager, or print it. It's your key to restoring Pro in any browser. Keep your receipt email too as proof of purchase. Questions? support@localpdfapp.com."));
+    ? "Save this card somewhere safe, such as your photos or a password manager, or print it. It's your key to restoring Pro in any browser. Keep your App Store receipt email too as proof of purchase. Questions? support@localpdfapp.com."
+    : "Save this card somewhere safe, such as your photos or a password manager, or print it. It's your key to restoring Pro in any browser. Keep your receipt email too as proof of purchase. Questions? support@localpdfapp.com."));
   modal.appendChild(licenseCardBlock(code));
   if (!IS_NATIVE) modal.appendChild(refundBlock()); // quiet, guilt-free "Need a refund?" entry (owner surface). Web only — Apple owns IAP refunds (Report a Problem).
   const msgHost = el("div", "pro-msg");
@@ -597,7 +597,7 @@ function showSaveNagBanner() {
   if (IS_NATIVE) return; // iOS has no restore CODE / license card to save — Apple restore covers cross-device
   if ($("#saveNagBanner")) return;
   const bar = el("div", "save-nag"); bar.id = "saveNagBanner";
-  bar.appendChild(txt("span", null, "Keep your Pro safe — save your license card so you can restore it anytime."));
+  bar.appendChild(txt("span", null, "Keep your Pro safe. Save your license card so you can restore it anytime."));
   const view = txt("button", "save-nag-view", "View card"); view.type = "button";
   view.onclick = () => showLicenseCardModal();
   const x = txt("button", "save-nag-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Dismiss for now");
@@ -619,20 +619,20 @@ function showRestoreCodeModal(code) {
   const modal = el("div", "modal pro-modal license-modal");
   modal.setAttribute("role", "dialog"); modal.setAttribute("aria-modal", "true");
   modal.setAttribute("aria-labelledby", "saveCodeTitle");
-  const _h = txt("h3", null, "You're Pro — save your restore code"); _h.id = "saveCodeTitle";
+  const _h = txt("h3", null, "You're Pro. Save your restore code"); _h.id = "saveCodeTitle";
   modal.appendChild(_h);
-  modal.appendChild(txt("p", "hint", "You're all set. Local PDF has no accounts, so this code is how you unlock Pro again in another browser — save it somewhere safe (photos, a password manager, or the license card below) and you're covered. (The iPhone and iPad app sells Pro separately through the App Store.)"));
-  modal.appendChild(txt("p", "hint", "Keep your receipt email too — it's your proof of purchase. Questions? support@localpdfapp.com."));
+  modal.appendChild(txt("p", "hint", "You're all set. Local PDF has no accounts, so this code is how you unlock Pro again in another browser. Save it somewhere safe (photos, a password manager, or the license card below) and you're covered. (The iPhone and iPad app sells Pro separately through the App Store.)"));
+  modal.appendChild(txt("p", "hint", "Keep your receipt email too. It's your proof of purchase. Questions? support@localpdfapp.com."));
   // The code on screen comes from memory (the purchase result), so it shows even when this
   // browser can't persist it — in that case it truly won't be here next visit: say so once.
-  if (!storageProbeOk()) modal.appendChild(txt("p", "hint", "This browser isn't saving data, so this code won't be here on your next visit — copy or save it now."));
+  if (!storageProbeOk()) modal.appendChild(txt("p", "hint", "This browser isn't saving data, so this code won't be here on your next visit. Copy or save it now."));
   const codeBox = el("div", "restore-code-box");
-  const codeText = txt("code", "restore-code-value", code || "—");
+  const codeText = txt("code", "restore-code-value", code || "…");
   codeBox.appendChild(codeText);
   const copyBtn = txt("button", "btn ghost sm", "Copy"); copyBtn.type = "button";
   copyBtn.onclick = async () => {
     try { await navigator.clipboard.writeText(code); copyBtn.textContent = "Copied!"; }
-    catch { copyBtn.textContent = "Couldn't copy — select and copy manually"; }
+    catch { copyBtn.textContent = "Couldn't copy. Select and copy manually"; }
     setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
   };
   codeBox.appendChild(copyBtn);
@@ -713,7 +713,7 @@ function showRestoreEntryModal() {
     goBtn.disabled = true; goBtn.textContent = "Checking…";
     // Normalize once here (raw value still has the "L" prefix marker intact), so a
     // typed full "LPDF-…" code is grouped correctly instead of leaking P/D/F into the body.
-    const res = await safeBillingAsync(() => Billing.restoreWithCode(formatRestoreCodeInput(input.value)), { ok: false, error: "Couldn't restore — try again." });
+    const res = await safeBillingAsync(() => Billing.restoreWithCode(formatRestoreCodeInput(input.value)), { ok: false, error: "Couldn't restore. Try again." });
     if (res && res.ok) {
       backdrop.remove();
       // Restore is NOT a first-purchase celebration — announce "Welcome back",
@@ -722,8 +722,8 @@ function showRestoreEntryModal() {
     } else {
       goBtn.disabled = false; goBtn.textContent = "Restore";
       const msg = res && res.offline
-        ? "You're offline — restoring Pro needs a connection to verify your code. Everything else works offline."
-        : (res && res.error) || "Couldn't restore — try again.";
+        ? "You're offline. Restoring Pro needs a connection to verify your code. Everything else works offline."
+        : (res && res.error) || "Couldn't restore. Try again.";
       status(msgHost, msg, "err");
     }
   };
@@ -751,8 +751,8 @@ function onProUnlocked(opts) {
   const ended = $("#accessEndedBanner"); if (ended) ended.remove();
   refreshAfterProChange();
   if (options.announceRestore !== false) {
-    showToast("Welcome back — Pro is unlocked on this device.");
-    announce("Welcome back — Pro is unlocked on this device.", "ok");
+    showToast("Welcome back. Pro is unlocked on this device.");
+    announce("Welcome back. Pro is unlocked on this device.", "ok");
   }
   runPendingIntent();
 }
@@ -828,30 +828,30 @@ function showProModal(context) {
   // "batch split" — Split's only Pro touch is the per-page "Download all as ZIP",
   // which the third bullet covers.
   [
-    "Advanced compress — pick Light or Maximum to control quality vs. how small the file gets.",
-    "Batch-process a whole folder — compress or convert dozens of PDFs at once and get them all back in one ZIP.",
+    "Advanced compress. Pick Light or Maximum to control quality vs. how small the file gets.",
+    "Batch-process a whole folder. Compress or convert dozens of PDFs at once and get them all back in one ZIP.",
     "Download all as one ZIP in Split and PDF → Images.",
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(list);
   // Durable one-time reassurance (no "subscription"/"plan"/"trial"/"per month").
-  modal.appendChild(txt("p", "hint pro-durable", "One purchase, not a subscription — you won't be charged again, and there are no per-file fees."));
+  modal.appendChild(txt("p", "hint pro-durable", "Pro covers every file you work on."));
   // Pre-frame the checkout: reassure BEFORE the buy button so the pay moment feels
   // safe. Small muted hint text, consistent with the app's .hint styling.
   if (IS_NATIVE) {
     // Apple IAP: no Stripe, no email receipt, no "your statement" (Apple bills), no self-run
     // money-back (refunds go through Apple's Report a Problem). One clean line replaces all three.
-    modal.appendChild(txt("p", "hint pro-reassure", "Payment is handled securely by the App Store, with the Apple Account you already use — it restores free on your other Apple devices."));
+    modal.appendChild(txt("p", "hint pro-reassure", "Payment is handled securely by the App Store, with the Apple Account you already use. It restores free on your other Apple devices."));
   } else {
     // "(via RevenueCat)" matches the checkout page's own header ("Secure checkout by
     // RevenueCat"), so the buyer never meets a third brand mid-payment unannounced.
-    modal.appendChild(txt("p", "hint pro-reassure", "Secure checkout by Stripe (via RevenueCat). You'll enter an email for your receipt only — it's not an account, and we never see your card."));
+    modal.appendChild(txt("p", "hint pro-reassure", "Secure checkout by Stripe (via RevenueCat). You'll enter an email for your receipt only. It's not an account, and we never see your card."));
     {
       const stmtNote = document.createElement("p");
       stmtNote.style.cssText = "margin:12px 0 0; font-size:13.5px; font-weight:500;";
       stmtNote.innerHTML = 'Shows on your statement as <strong>“Eden Apps”</strong>';
       modal.appendChild(stmtNote);
     }
-    modal.appendChild(txt("p", "hint pro-reassure", "30-day money-back guarantee — email support@localpdfapp.com."));
+    modal.appendChild(txt("p", "hint pro-reassure", "30-day money-back guarantee. Email support@localpdfapp.com."));
     // Cross-store clarity BEFORE purchase, not only after: the web unlock is for browsers,
     // and an iPhone-intending buyer should know that before paying (previously said only
     // in the post-purchase code modals and the Help page).
@@ -859,7 +859,7 @@ function showProModal(context) {
     // Storage-blocked browsers can't remember a purchase — say so BEFORE checkout (web only),
     // so the buyer knows to keep their receipt + restore code themselves.
     if (!storageProbeOk()) {
-      modal.appendChild(txt("p", "hint pro-reassure", "Heads up — this browser isn't saving data, so keep your receipt and restore code somewhere safe after you buy."));
+      modal.appendChild(txt("p", "hint pro-reassure", "Heads up. This browser isn't saving data, so keep your receipt and restore code somewhere safe after you buy."));
     }
   }
   const msgHost = el("div", "pro-msg");
@@ -892,14 +892,14 @@ function showProModal(context) {
     if (res && res.inFlight) {
       // A purchase from a moment ago is still settling (entitlement attaching). Don't open a
       // second checkout or show an error card — reassure, and Pro unlocks itself when it lands.
-      status(msgHost, "Your purchase is still going through — give it a moment and Pro will unlock automatically.", "info");
+      status(msgHost, "Your purchase is still going through. Give it a moment and Pro will unlock automatically.", "info");
     } else if (res && res.cancelled) {
       // Neutral/grey, role=status — a deliberate close is NOT a failure. No red, no retry-nag.
-      status(msgHost, "No charge was made — Pro will be here whenever you're ready.", "note");
+      status(msgHost, "No charge was made. Pro will be here whenever you're ready.", "note");
     } else if (res && res.offline) {
       // "no charge was made just now" — scoped to THIS attempt; never a blanket claim
       // (an earlier ambiguous attempt could have charged).
-      status(msgHost, "You're offline — buying Pro needs a connection for the secure checkout. Everything else works offline, and no charge was made just now.", "note");
+      status(msgHost, "You're offline. Buying Pro needs a connection for the secure checkout. Everything else works offline, and no charge was made just now.", "note");
     } else if (res && res.pending) {
       // PAID — the charge SUCCEEDED; the entitlement is only still attaching (a few seconds).
       // Never show the "purchase didn't start / you weren't charged" card or a re-buy button to
@@ -930,7 +930,7 @@ function showProModal(context) {
         restoreLink.disabled = false; restoreLink.textContent = prev;
         // The web-buyer clause matters here: web Pro and App Store Pro are separate
         // purchases, so a web owner must not be sent hunting through Apple Accounts.
-        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", "note");
+        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with. Bought on the web? Web and App Store purchases are separate. Your code works in your browser.", "note");
       }
     };
   } else {
@@ -974,11 +974,11 @@ function renderPurchaseError(host, retry) {
   card.appendChild(txt("h4", "pro-err-title", "Something went wrong"));
   // "no charge was made just now" — scoped to this attempt, honest both ways.
   card.appendChild(txt("p", "pro-err-body",
-    "If your card was charged, your Pro will unlock automatically on your next visit — otherwise no charge was made just now."));
+    "If your card was charged, your Pro will unlock automatically on your next visit. Otherwise no charge was made just now."));
   // Secure / won't-be-charged reassurance line (mirrors the checkout tone).
   const secure = el("p", "pro-err-secure",
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-  secure.appendChild(document.createTextNode("If a charge did go through, your Pro unlocks automatically — nothing is lost."));
+  secure.appendChild(document.createTextNode("If a charge did go through, your Pro unlocks automatically and nothing is lost."));
   card.appendChild(secure);
   // Support line with THIS app's business email as a mailto: link (allowed).
   const support = el("p", "pro-err-support");
@@ -995,7 +995,7 @@ function renderPurchaseError(host, retry) {
   host.appendChild(card);
   // Move focus to the retry control so keyboard/SR users land on the next action.
   try { tryBtn.focus(); } catch (_) {}
-  announce("Something went wrong. If your card was charged, your Pro will unlock automatically on your next visit — otherwise no charge was made just now.", "err"); // mirrors the visible card's scoped wording
+  announce("Something went wrong. If your card was charged, your Pro will unlock automatically on your next visit. Otherwise no charge was made just now.", "err"); // mirrors the visible card's scoped wording
 }
 
 // Called when the charge SUCCEEDED but the entitlement is still attaching (billing
@@ -1003,9 +1003,9 @@ function renderPurchaseError(host, retry) {
 // failure. Reassure, give them their restore code now, and quietly promote to a full
 // unlock the moment the entitlement lands (no manual reload needed).
 function handlePurchasePending(restoreCode, message) {
-  const msg = message || "Your payment went through — your Pro is unlocking now. If it doesn't appear in a moment, reload this page.";
+  const msg = message || "Your payment went through. Your Pro is unlocking now. If it doesn't appear in a moment, reload this page.";
   announce(msg, "ok");
-  showToast("Payment received — unlocking your Pro…");
+  showToast("Payment received. Unlocking your Pro…");
   if (restoreCode) showRestoreCodeModal(restoreCode); // they paid; hand over their key straight away
   // Four quick polls cover normal attach lag (~10s). If Pro still hasn't landed by then,
   // don't go quiet on sighted users (the toast is long gone and the reload hint lives only
@@ -1035,7 +1035,7 @@ function showPendingUnlockLine() {
   if ($("#pendingUnlockBanner")) return;
   const bar = el("div", "save-nag"); bar.id = "pendingUnlockBanner";
   bar.setAttribute("role", "status");
-  bar.appendChild(txt("span", null, "Still confirming your unlock with the payment provider — this can take a minute. Your Pro will appear automatically."));
+  bar.appendChild(txt("span", null, "Still confirming your unlock with the payment provider. This can take a minute. Your Pro will appear automatically."));
   const x = txt("button", "save-nag-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Dismiss");
   x.onclick = () => bar.remove();
   bar.append(x);
@@ -1057,7 +1057,7 @@ function showPostPurchaseAmberModal() {
   if (IS_NATIVE) {
     // Apple IAP mints no restore CODE — cross-device restore is handled by the Apple ID +
     // "Restore Purchases", so skip the mint flow and show a clean success instead.
-    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device — and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
+    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device, and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
     const doneBtn = txt("button", "btn big", "Done"); doneBtn.type = "button";
     doneBtn.onclick = () => { backdrop.remove(); refreshAfterProChange(); };
     const actions = el("div", "pro-actions"); actions.append(doneBtn);
@@ -1115,8 +1115,8 @@ function friendly(e) {
   const m = (e && e.message) || String(e);
   if (m === "PASSWORD_PROTECTED") return "This PDF is password-protected. Open it in your PDF app, remove the password, then try again.";
   if (m === "READ_FAILED") return "Couldn't read that file from your device.";
-  if (m === "NO_PAGES") return "That produced an empty PDF — nothing to save.";
-  return "Couldn't process that file — it may be corrupt or in an unexpected format.";
+  if (m === "NO_PAGES") return "That produced an empty PDF, nothing to save.";
+  return "Couldn't process that file. It may be corrupt or in an unexpected format.";
 }
 
 // ── Safe PDF loaders (detect encryption; CSP-safe pdf.js) ────────────
@@ -1165,7 +1165,7 @@ function dropZone(accept, multiple, onFiles) {
   zone.setAttribute("aria-label", multiple ? ("Choose " + kind + " files") : ("Choose a " + kind + " file"));
   const big = el("div", "big", DROP_ILLUSTRATION); big.setAttribute("aria-hidden", "true"); zone.appendChild(big);
   zone.appendChild(txt("h4", null, `Drop ${multiple ? "files" : "a file"} here`));
-  zone.appendChild(txt("p", null, `or click to choose${multiple ? " — add as many as you like" : ""}. Nothing is uploaded.`));
+  zone.appendChild(txt("p", null, `or click to choose${multiple ? ". Add as many as you like" : ""}. Nothing is uploaded.`));
   const input = el("input"); input.type = "file"; input.accept = accept; input.multiple = !!multiple; input.className = "hidden";
   const btn = txt("button", "btn", "Choose " + (multiple ? "files" : "file")); btn.type = "button";
   zone.appendChild(btn); zone.appendChild(input);
@@ -1177,7 +1177,7 @@ function dropZone(accept, multiple, onFiles) {
   btn.addEventListener("click", (e) => { e.stopPropagation(); pick(); });
   // Wrong-type pick is no longer a silent no-op: if the user chose/dropped only
   // files that don't match `accept`, say so instead of doing nothing.
-  const rejectWrongType = () => status(zone, `That's not ${article} ${kind} file — please choose ${article} ${kind}.`, "err");
+  const rejectWrongType = () => status(zone, `That's not ${article} ${kind} file. Please choose ${article} ${kind}.`, "err");
   input.addEventListener("change", () => {
     const raw = [...input.files]; const kept = raw.filter(f => matchAccept(f, accept));
     if (kept.length) { clearInfo(zone); onFiles(kept); } else if (raw.length) { rejectWrongType(); }
@@ -1220,17 +1220,17 @@ const TOOLS = [
   { id: "split", name: "Split / Extract", desc: "Extract pages or split a PDF into multiple files.", open: toolSplit },
   { id: "organize", name: "Organize Pages", desc: "Reorder, rotate, and delete pages with live thumbnails.", open: toolOrganize },
   { id: "img2pdf", name: "Images → PDF", desc: "Convert JPGs or PNGs into a single PDF, in your order.", open: toolImg2Pdf },
-  { id: "pdf2img", name: "PDF → Images", desc: "Save each page as a PNG or JPG image — or batch many at once.", open: toolPdf2Img },
-  { id: "compress", name: "Compress PDF", desc: "Shrink a big PDF to fit email or upload limits — all on your device, nothing uploaded.", pro: false, open: toolCompress },
-  { id: "search", name: "Search text", desc: "Find any word across a PDF — jump to every page it appears on.", open: toolSearch },
-  { id: "extract", name: "Extract text", desc: "Pull all text out of a PDF as a .txt file.", open: toolExtractText },
-  { id: "ocr", name: "Scan to text (OCR)", desc: "Read text off scanned or image-only PDFs — recognized on your device, never uploaded.", open: toolOcr },
-  { id: "pagenum", name: "Add page numbers", desc: "Stamp page numbers onto a PDF — choose the position, format, and size.", open: toolAddPageNumbers },
-  { id: "removemeta", name: "Remove metadata", desc: "Strip hidden author, title, and app info before you share — a quick privacy clean-up.", open: toolRemoveMetadata },
-  { id: "watermark", name: "Watermark / stamp", desc: "Stamp “DRAFT”, “CONFIDENTIAL”, or your name across every page — pick the position, size, and opacity.", open: toolWatermark },
+  { id: "pdf2img", name: "PDF → Images", desc: "Save each page as a PNG or JPG image, or batch many at once.", open: toolPdf2Img },
+  { id: "compress", name: "Compress PDF", desc: "Shrink a big PDF to fit email or upload limits, all on your device, nothing uploaded.", pro: false, open: toolCompress },
+  { id: "search", name: "Search text", desc: "Find any word across a PDF. Jump to every page it appears on.", open: toolSearch },
+  { id: "extract", name: "Extract text", desc: "Save all text from a PDF as a .txt file.", open: toolExtractText },
+  { id: "ocr", name: "Scan to text (OCR)", desc: "Read text off scanned or image-only PDFs. Recognized on your device, never uploaded.", open: toolOcr },
+  { id: "pagenum", name: "Add page numbers", desc: "Stamp page numbers onto a PDF. Choose the position, format, and size.", open: toolAddPageNumbers },
+  { id: "removemeta", name: "Remove metadata", desc: "Strip hidden author, title, and app info before you share. A quick privacy clean-up.", open: toolRemoveMetadata },
+  { id: "watermark", name: "Watermark / stamp", desc: "Stamp “DRAFT”, “CONFIDENTIAL”, or your name across every page. Pick the position, size, and opacity.", open: toolWatermark },
   { id: "fillforms", name: "Fill & flatten forms", desc: "Fill in a PDF form and bake the answers in so they can’t be changed later.", open: toolFillForms },
-  { id: "sign", name: "Sign PDF", desc: "Draw or upload your signature and place it on any page — sign without uploading your document anywhere.", open: toolSign },
-  { id: "redact", name: "Redact", desc: "Black out sensitive areas and permanently destroy what’s underneath — the hidden text and data are gone for good.", pro: false, open: toolRedact },
+  { id: "sign", name: "Sign PDF", desc: "Draw or upload your signature and place it on any page. Sign without uploading your document anywhere.", open: toolSign },
+  { id: "redact", name: "Redact", desc: "Black out sensitive areas and permanently remove the text and data underneath.", pro: false, open: toolRedact },
 ];
 
 // ── Hub categories (design4 grouping) — presentation only; every tool keeps
@@ -1238,7 +1238,7 @@ const TOOLS = [
 //    markup (safe for el()'s html param).
 const TOOL_CATEGORIES = [
   { id: "cat-organize", name: "Organize PDF", desc: "Reorder, split, and combine pages easily.", tools: ["merge", "split", "organize"] },
-  { id: "cat-convert", name: "Convert", desc: "Convert PDFs to and from images — or shrink them down.", tools: ["img2pdf", "pdf2img", "compress"] },
+  { id: "cat-convert", name: "Convert", desc: "Convert PDFs to and from images, or shrink them down.", tools: ["img2pdf", "pdf2img", "compress"] },
   { id: "cat-extract", name: "Extract & Search", desc: "Find and extract content from your PDFs.", tools: ["search", "extract", "ocr"] },
   { id: "cat-secure", name: "Edit & secure", desc: "Stamp, clean up, and fill your PDFs before you share them.", tools: ["watermark", "removemeta", "fillforms", "sign", "redact"] },
   { id: "cat-other", name: "Other tools", desc: "More helpful tools to round out your PDFs.", tools: ["pagenum"] },
@@ -1357,7 +1357,7 @@ function toolMerge(host) {
   async function addFiles(files) {
     for (const file of files) {
       try { const bytes = await readBytes(file); const doc = await loadForEdit(bytes); items.push({ file, bytes, pages: doc.getPageCount() }); }
-      catch (e) { status(host, `"${file.name}" — ${friendly(e)}`, "err"); }
+      catch (e) { status(host, `"${file.name}": ${friendly(e)}`, "err"); }
     }
     render();
   }
@@ -1379,7 +1379,7 @@ function toolMerge(host) {
       for (const it of items) { const src = await loadForEdit(it.bytes); const pages = await out.copyPages(src, src.getPageIndices()); pages.forEach(p => out.addPage(p)); }
       const bytes = await out.save();
       await download(bytes, "merged.pdf");
-      status(host, `Done — merged ${out.getPageCount()} pages (${fmtBytes(bytes.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+      status(host, `Done. Merged ${out.getPageCount()} pages (${fmtBytes(bytes.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
     } catch (e) { status(host, friendly(e), "err"); }
     merged.disabled = false;
   }
@@ -1443,7 +1443,7 @@ function batchFileStage(host, cfg) {
   async function addFiles(files) {
     for (const file of files) {
       try { const bytes = await readBytes(file); items.push({ file, bytes, name: file.name }); }
-      catch (e) { status(host, `"${file.name}" — ${friendly(e)}`, "err"); }
+      catch (e) { status(host, `"${file.name}": ${friendly(e)}`, "err"); }
     }
     render();
   }
@@ -1515,20 +1515,20 @@ function batchFileStage(host, cfg) {
       try {
         status(host, `${cfg.batchVerb === "compress" ? "Compressing" : "Converting"} file ${k + 1} of ${n}…`);
         const res = await cfg.perFile(it.bytes, it.name, opts, (pi, pn) =>
-          status(host, `${cfg.batchVerb === "compress" ? "Compressing" : "Converting"} file ${k + 1} of ${n} — page ${pi} of ${pn}…`));
+          status(host, `${cfg.batchVerb === "compress" ? "Compressing" : "Converting"} file ${k + 1} of ${n}. Page ${pi} of ${pn}…`));
         (Array.isArray(res) ? res : [res]).forEach((f) => out.push(f));
       } catch (e) { failed++; } // per-file isolation: note it, keep going
     }
     if (!out.length) {
-      status(host, `Couldn't process ${failed === 1 ? "that file" : "any of those files"} — they may be corrupt, password-protected, or in an unexpected format.`, "err");
+      status(host, `Couldn't process ${failed === 1 ? "that file" : "any of those files"}. They may be corrupt, password-protected, or in an unexpected format.`, "err");
       batchBtn.disabled = false; clear.disabled = false; return;
     }
     try {
       status(host, "Zipping…");
       const zipSize = await downloadAsZip(out, cfg.zipName);
       const okCount = n - failed;
-      const note = failed ? ` (${failed} file${failed !== 1 ? "s" : ""} skipped — couldn't be read)` : "";
-      status(host, `Done — ${okCount} file${okCount !== 1 ? "s" : ""} in one ZIP (${fmtBytes(zipSize)})${note}.`, failed ? "info" : "ok");
+      const note = failed ? ` (${failed} file${failed !== 1 ? "s" : ""} skipped: couldn't be read)` : "";
+      status(host, `Done, ${okCount} file${okCount !== 1 ? "s" : ""} in one ZIP (${fmtBytes(zipSize)})${note}.`, failed ? "info" : "ok");
     } catch (e) { status(host, friendly(e), "err"); }
     batchBtn.disabled = false; clear.disabled = false;
   }
@@ -1541,7 +1541,7 @@ function toolSplit(host) {
     const total = src.getPageCount();
     const panel = el("div");
     const hint = el("div", "hint"); hint.style.marginBottom = "14px";
-    hint.append(document.createTextNode("Loaded "), txt("b", null, name), document.createTextNode(` — ${total} pages.`));
+    hint.append(document.createTextNode("Loaded "), txt("b", null, name), document.createTextNode(`, ${total} pages.`));
     const radios = el("div", "radios");
     radios.innerHTML = `<label><input type="radio" name="mode" value="range" checked> Extract page range into one PDF</label>
       <label><input type="radio" name="mode" value="each"> Split into one PDF per page</label>`;
@@ -1622,7 +1622,7 @@ function toolOrganize(host) {
     const thumbs = {}; // src -> canvas (filled progressively)
     const grid = el("div", "pagegrid");
     const actions = el("div", "controls");
-    const hint = txt("div", "hint", `${name} — drag to reorder · ⟳ to rotate · ✕ to delete`);
+    const hint = txt("div", "hint", `${name}. Drag to reorder · ⟳ to rotate · ✕ to delete`);
     const save = txt("button", "btn", "Save PDF"); save.onclick = doSave;
     actions.append(hint, el("div", "spacer"), save);
     host.append(grid, actions);
@@ -1660,7 +1660,7 @@ function toolOrganize(host) {
         const copied = await out.copyPages(src, order.map(o => o.src));
         copied.forEach((pg, i) => { const base = pg.getRotation().angle || 0; pg.setRotation(degrees((base + order[i].rot) % 360)); out.addPage(pg); });
         const b = await out.save(); await download(b, `${safeName(name)}-organized.pdf`);
-        status(host, `Saved — ${order.length} pages (${fmtBytes(b.length)}).`, "ok");
+        status(host, `Saved, ${order.length} pages (${fmtBytes(b.length)}).`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       save.disabled = false;
     }
@@ -1709,9 +1709,9 @@ function toolImg2Pdf(host) {
       }
       if (out.getPageCount() === 0) throw new Error("NO_PAGES");
       const b = await out.save(); await download(b, "images.pdf");
-      const note = skipped ? ` (${skipped} image${skipped !== 1 ? "s" : ""} skipped — unsupported format)` : "";
+      const note = skipped ? ` (${skipped} image${skipped !== 1 ? "s" : ""} skipped: unsupported format)` : "";
       status(host, `Created a ${out.getPageCount()}-page PDF (${fmtBytes(b.length)})${note}.`, skipped ? "info" : "ok");
-    } catch (e) { status(host, e.message === "NO_PAGES" ? "None of those images could be added — try PNG or JPG." : friendly(e), "err"); }
+    } catch (e) { status(host, e.message === "NO_PAGES" ? "None of those images could be added. Try PNG or JPG." : friendly(e), "err"); }
     make.disabled = false;
   }
 }
@@ -1778,7 +1778,7 @@ async function singlePdf2ImgPanel(host, bytes, name) {
   ctl.append(fFmt, fSc, el("div", "spacer"), go, zipBtn);
   // Multi-page export fires one download per page, so Chrome asks the user to
   // "allow multiple downloads" — forewarn only when there's more than one page.
-  const note = txt("div", "hint", IS_NATIVE ? `${name} — one image per page, saved to your device.` : `${name} — one image per page, saved to your downloads.${js.numPages > 1 ? " Your browser may ask to allow multiple downloads." : ""}`);
+  const note = txt("div", "hint", IS_NATIVE ? `${name}, one image per page, saved to your device.` : `${name}, one image per page, saved to your downloads.${js.numPages > 1 ? " Your browser may ask to allow multiple downloads." : ""}`);
   panel.append(ctl, note); host.appendChild(panel);
   go.onclick = async () => {
     go.disabled = true; const f = fmt.value, sc = +scale.value;
@@ -1833,7 +1833,7 @@ async function compressPdfBytes(bytes, level, onProgress) {
 //            runs compressPdfBytes() over each file and delivers one ZIP.
 function toolCompress(host) {
   batchFileStage(host, {
-    levelOptions: `<option value="low">Light — best quality, smaller shrink</option><option value="medium" selected>Recommended — balanced size &amp; quality</option><option value="high">Maximum — smallest file, lower quality</option>`,
+    levelOptions: `<option value="low">Light: best quality, smaller shrink</option><option value="medium" selected>Recommended: balanced size &amp; quality</option><option value="high">Maximum: smallest file, lower quality</option>`,
     batchVerb: "compress",
     zipName: "local-pdf-batch-compress.zip",
     perFile: (bytes, name, level, onProgress) =>
@@ -1868,7 +1868,7 @@ async function singleCompressPanel(host, bytes, name) {
 
   const panel = el("div");
   const note = txt("div", "hint",
-    `${name} — ${totalPages} page${totalPages !== 1 ? "s" : ""} · ${fmtBytes(beforeLen)}. Compressing re-renders each page as an image to shrink it, so it works best on scans and image-heavy PDFs. Selectable text becomes part of the image (no longer selectable), and everything runs on your device — nothing is uploaded.`);
+    `${name}, ${totalPages} page${totalPages !== 1 ? "s" : ""} · ${fmtBytes(beforeLen)}. Compressing re-renders each page as an image to shrink it, so it works best on scans and image-heavy PDFs. Selectable text becomes part of the image (no longer selectable), and everything runs on your device, so nothing is uploaded.`);
   note.style.marginBottom = "12px";
 
   const ctl = el("div", "controls"); ctl.style.border = "0"; ctl.style.paddingTop = "0";
@@ -1879,9 +1879,9 @@ async function singleCompressPanel(host, bytes, name) {
   // compressPdfBytes()/batch path is untouched. "Recommended" is the default and
   // the only level free users can run; the others carry a "(Pro)" hint in the label.
   lvl.innerHTML =
-    `<option value="low">Light — best quality, smaller shrink (Pro)</option>` +
-    `<option value="medium" selected>Recommended — balanced size &amp; quality</option>` +
-    `<option value="high">Maximum — smallest file, lower quality (Pro)</option>`;
+    `<option value="low">Light: best quality, smaller shrink (Pro)</option>` +
+    `<option value="medium" selected>Recommended: balanced size &amp; quality</option>` +
+    `<option value="high">Maximum: smallest file, lower quality (Pro)</option>`;
   fLvl.appendChild(lvl);
   const go = txt("button", "btn", "Compress"); go.type = "button";
   ctl.append(fLvl, el("div", "spacer"), go);
@@ -1890,9 +1890,9 @@ async function singleCompressPanel(host, bytes, name) {
   // Owner sees the advanced levels as plain (no "(Pro)" hint) since they're unlocked.
   if (safeBilling(() => Billing.isPro(), false)) {
     lvl.innerHTML =
-      `<option value="low">Light — best quality, smaller shrink</option>` +
-      `<option value="medium" selected>Recommended — balanced size &amp; quality</option>` +
-      `<option value="high">Maximum — smallest file, lower quality</option>`;
+      `<option value="low">Light: best quality, smaller shrink</option>` +
+      `<option value="medium" selected>Recommended: balanced size &amp; quality</option>` +
+      `<option value="high">Maximum: smallest file, lower quality</option>`;
   }
 
   // Where the before/after result card renders (below the controls).
@@ -1990,7 +1990,7 @@ function renderCompressResult(host, r) {
   const actions = el("div", "compress-actions");
   if (r.smaller) {
     card.appendChild(txt("p", "compress-headline ok",
-      `Nice — ${fmtBytes(r.beforeLen)} → ${fmtBytes(r.afterLen)}, ${r.pct}% smaller.`));
+      `Nice, ${fmtBytes(r.beforeLen)} → ${fmtBytes(r.afterLen)}, ${r.pct}% smaller.`));
     const save = txt("button", "btn", "Download compressed PDF"); save.type = "button";
     save.onclick = () => r.onSaveCompressed();
     const keep = txt("button", "btn ghost", "Keep the original instead"); keep.type = "button";
@@ -1998,7 +1998,7 @@ function renderCompressResult(host, r) {
     actions.append(save, keep);
   } else {
     card.appendChild(txt("p", "compress-headline",
-      `This PDF was already well-optimized — compressing it wouldn't make it smaller (it would be ${fmtBytes(r.afterLen)} vs ${fmtBytes(r.beforeLen)}). Your original is best kept as-is.`));
+      `This PDF was already well-optimized. Compressing it wouldn't make it smaller (it would be ${fmtBytes(r.afterLen)} vs ${fmtBytes(r.beforeLen)}). Your original is best kept as-is.`));
     const keep = txt("button", "btn", "Keep the original"); keep.type = "button";
     keep.onclick = () => r.onKeepOriginal();
     actions.append(keep);
@@ -2041,7 +2041,7 @@ function toolSearch(host) {
         const bytes = await readBytes(file);
         const pages = await extractPageText(bytes);
         docs.push({ name: file.name, pages });
-      } catch (e) { status(host, `"${file.name}" — ${friendly(e)}`, "err"); failed = true; }
+      } catch (e) { status(host, `"${file.name}": ${friendly(e)}`, "err"); failed = true; }
     }
     // clearInfo only exists to drop the transient "Reading…" spinner — it must
     // NOT wipe a real error. If any file failed (corrupt / password-protected /
@@ -2171,7 +2171,7 @@ function toolExtractText(host) {
   singleFileStage(host, async (bytes, name) => {
     const js = await loadForRender(bytes);
     const panel = el("div");
-    const note = txt("div", "hint", `${name} — ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. Pulls all selectable text into a plain .txt file. Scanned PDFs with no text layer will come out empty.`);
+    const note = txt("div", "hint", `${name}, ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. Saves all selectable text into a plain .txt file. Scanned PDFs with no text layer will come out empty.`);
     note.style.marginBottom = "12px";
     const ctl = el("div", "controls"); ctl.style.border = "0"; ctl.style.paddingTop = "0";
     const go = txt("button", "btn", "Extract text & download");
@@ -2182,7 +2182,7 @@ function toolExtractText(host) {
       try {
         const parts = [];
         for (let i = 1; i <= js.numPages; i++) {
-          status(host, `Extracting text — page ${i} of ${js.numPages}…`);
+          status(host, `Extracting text. Page ${i} of ${js.numPages}…`);
           const page = await js.getPage(i);
           const content = await page.getTextContent();
           // Same join pdf.js text extraction uses in Search; page separator marks each page.
@@ -2254,7 +2254,7 @@ function toolAddPageNumbers(host) {
     const note = el("div", "hint");
     note.style.marginBottom = "14px";
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${total} page${total !== 1 ? "s" : ""}. Numbers are drawn onto every page and saved as a new PDF; your original file is untouched.`));
+      document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}. Numbers are drawn onto every page and saved as a new PDF; your original file is untouched.`));
 
     const ctl = el("div", "controls"); ctl.style.border = "0"; ctl.style.paddingTop = "0";
 
@@ -2297,7 +2297,7 @@ function toolAddPageNumbers(host) {
       const sample = pageNumberLabel(fmt.value, 1, total, s);
       preview.textContent = "";
       preview.append(
-        document.createTextNode(`${total} page${total !== 1 ? "s" : ""} — numbers will read like `),
+        document.createTextNode(`${total} page${total !== 1 ? "s" : ""}. Numbers will read like `),
         txt("b", null, `“${sample}”`),               // SAFE: textContent
         document.createTextNode(total > 1 ? `, up to “${pageNumberLabel(fmt.value, total, total, s)}”.` : ".")
       );
@@ -2333,7 +2333,7 @@ function toolAddPageNumbers(host) {
         });
         const out = await doc.save();
         await download(out, `${safeName(name)}-numbered.pdf`);
-        status(host, `Done — numbered ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        status(host, `Done. Numbered ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2356,7 +2356,7 @@ function toolRemoveMetadata(host) {
     const panel = el("div");
     const note = el("div", "hint"); note.style.marginBottom = "14px";
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${total} page${total !== 1 ? "s" : ""}. This clears hidden document info — author, title, subject, keywords, and the app that created it — then saves a clean copy. Your pages and your original file are untouched.`));
+      document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}. This clears hidden document info (author, title, subject, keywords, and the app that created it), then saves a clean copy. Your pages and your original file are untouched.`));
 
     const ctl = el("div", "controls"); ctl.style.border = "0"; ctl.style.paddingTop = "0";
     const go = txt("button", "btn", "Remove metadata & download"); go.type = "button";
@@ -2382,7 +2382,7 @@ function toolRemoveMetadata(host) {
         try { doc.setCreationDate(epoch); doc.setModificationDate(epoch); } catch {}
         const out = await doc.save();
         await download(out, `${safeName(name)}-clean.pdf`);
-        status(host, `Done — metadata cleared and saved as a clean copy (${fmtBytes(out.length)}). Your original file is unchanged.`, "ok");
+        status(host, `Done. Metadata cleared and saved as a clean copy (${fmtBytes(out.length)}). Your original file is unchanged.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2408,7 +2408,7 @@ function toolWatermark(host) {
     const panel = el("div");
     const note = el("div", "hint"); note.style.marginBottom = "14px";
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${total} page${total !== 1 ? "s" : ""}. Your text is stamped onto every page and saved as a new PDF; your original file is untouched.`));
+      document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}. Your text is stamped onto every page and saved as a new PDF; your original file is untouched.`));
 
     const fText = el("div", "field"); fText.style.flex = "1"; fText.style.minWidth = "200px";
     fText.appendChild(txt("label", null, "Watermark text"));
@@ -2491,7 +2491,7 @@ function toolWatermark(host) {
         });
         const out = await doc.save();
         await download(out, `${safeName(name)}-watermarked.pdf`);
-        status(host, `Done — watermarked ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        status(host, `Done. Watermarked ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2518,13 +2518,13 @@ function toolFillForms(host) {
     // No fillable fields → clear, honest message and stop (no controls, no button).
     if (!fields.length) {
       note.append(document.createTextNode("Loaded "), txt("b", null, name),
-        document.createTextNode(" — this PDF has no fillable form fields, so there's nothing to fill in here. If you need to add text on top of the page, try the Watermark / stamp or Add page numbers tools."));
+        document.createTextNode(", but this PDF has no fillable form fields, so there's nothing to fill in here. If you need to add text on top of the page, try the Watermark / stamp or Add page numbers tools."));
       panel.append(note); host.appendChild(panel);
       return;
     }
 
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${fields.length} form field${fields.length !== 1 ? "s" : ""}. Fill them in below, then flatten to bake your answers into the PDF so they can no longer be edited. Your original file is untouched.`));
+      document.createTextNode(`, ${fields.length} form field${fields.length !== 1 ? "s" : ""}. Fill them in below, then flatten to bake your answers into the PDF so they can no longer be edited. Your original file is untouched.`));
     panel.append(note);
 
     // Build a control per field. `readers` collects apply-callbacks run at save time.
@@ -2586,7 +2586,7 @@ function toolFillForms(host) {
         // Unrecognized field kind (e.g. a signature or button field): show it,
         // read-only, so the user still sees it exists but we don't guess a control.
         row.append(lbl);
-        row.appendChild(txt("span", "hint", "(this field type can't be filled here — it will be kept as-is)"));
+        row.appendChild(txt("span", "hint", "(this field type can't be filled here. It will be kept as-is)"));
       }
       formEl.appendChild(row);
     });
@@ -2608,7 +2608,7 @@ function toolFillForms(host) {
         try { form.flatten(); } catch (e) { /* flatten can throw on exotic forms */ throw e; }
         const out = await doc.save();
         await download(out, `${safeName(name)}-filled.pdf`);
-        status(host, `Done — filled and flattened ${fields.length} field${fields.length !== 1 ? "s" : ""} (${fmtBytes(out.length)}). The values are now baked in and can't be edited.`, "ok");
+        status(host, `Done. Filled and flattened ${fields.length} field${fields.length !== 1 ? "s" : ""} (${fmtBytes(out.length)}). The values are now baked in and can't be edited.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2632,7 +2632,7 @@ function toolSign(host) {
     const panel = el("div");
     const note = el("div", "hint"); note.style.marginBottom = "14px";
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${total} page${total !== 1 ? "s" : ""}. Draw or upload your signature, then click the page preview (or pick a corner) to place it. Sign without uploading your document anywhere — everything happens on your device.`));
+      document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}. Draw or upload your signature, then click the page preview (or pick a corner) to place it. Sign without uploading your document anywhere. Everything happens on your device.`));
     panel.appendChild(note);
 
     // ── Signature source: DRAW or UPLOAD (segmented) ──────────────────
@@ -2657,7 +2657,7 @@ function toolSign(host) {
     const pad = el("canvas", "sign-pad");
     pad.width = 480; pad.height = 160;
     pad.setAttribute("role", "img");
-    pad.setAttribute("aria-label", "Signature drawing pad — draw your signature here");
+    pad.setAttribute("aria-label", "Signature drawing pad. Draw your signature here");
     pad.setAttribute("tabindex", "0");
     const pctx = pad.getContext("2d");
     pctx.lineWidth = 2.6; pctx.lineCap = "round"; pctx.lineJoin = "round";
@@ -2729,7 +2729,7 @@ function toolSign(host) {
         const timg = el("img", "sign-up-thumb-img"); timg.src = url; timg.alt = "Your signature preview";
         upThumbWrap.appendChild(timg);
         refreshPlaceUI();
-      } catch (e) { status(host, "Couldn't read that image — try a PNG or JPG.", "err"); }
+      } catch (e) { status(host, "Couldn't read that image. Try a PNG or JPG.", "err"); }
     });
 
     function setMode(mode) {
@@ -2783,7 +2783,7 @@ function toolSign(host) {
     previewHint.style.margin = "14px 0 8px";
     const previewCanvas = el("canvas", "sign-preview-canvas");
     previewCanvas.setAttribute("role", "img");
-    previewCanvas.setAttribute("aria-label", "Page preview — click to place your signature");
+    previewCanvas.setAttribute("aria-label", "Page preview. Click to place your signature");
     const marker = el("div", "sign-marker hidden"); marker.setAttribute("aria-hidden", "true");
     previewWrap.append(previewCanvas, marker);
     panel.append(previewHint, previewWrap);
@@ -2871,9 +2871,9 @@ function toolSign(host) {
         page.drawImage(img, { x, y, width: sw, height: sh });
         const out = await doc.save();
         await download(out, `${safeName(name)}-signed.pdf`);
-        status(host, `Done — signature placed on page ${pn} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        status(host, `Done. Signature placed on page ${pn} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) {
-        status(host, e && e.message === "SIG_EMBED" ? "Couldn't use that signature image — try a PNG or JPG." : friendly(e), "err");
+        status(host, e && e.message === "SIG_EMBED" ? "Couldn't use that signature image. Try a PNG or JPG." : friendly(e), "err");
       }
       go.disabled = false;
     };
@@ -2898,7 +2898,7 @@ function toolRedact(host) {
     const panel = el("div");
     const note = el("div", "hint"); note.style.marginBottom = "12px";
     note.append(document.createTextNode("Loaded "), txt("b", null, name),
-      document.createTextNode(` — ${total} page${total !== 1 ? "s" : ""}. Draw black boxes over anything sensitive, then export. Redaction permanently destroys the data under each box by rasterizing affected pages, so text there becomes an image — nothing stays hidden underneath. Everything runs on your device.`));
+      document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}. Draw black boxes over anything sensitive, then export. Redaction permanently destroys the data under each box by rasterizing affected pages, so text there becomes an image and nothing stays hidden underneath. Everything runs on your device.`));
     panel.appendChild(note);
 
     // Per-page rectangle store. Keyed by page number → array of normalized rects
@@ -2920,7 +2920,7 @@ function toolRedact(host) {
     const stage = el("div", "redact-stage");
     const canvas = el("canvas", "redact-canvas");
     canvas.setAttribute("role", "img");
-    canvas.setAttribute("aria-label", "Page — drag to draw a redaction box over sensitive areas");
+    canvas.setAttribute("aria-label", "Page. Drag to draw a redaction box over sensitive areas");
     canvas.setAttribute("tabindex", "0");
     const overlay = el("div", "redact-overlay"); overlay.setAttribute("aria-hidden", "true");
     stage.append(canvas, overlay);
@@ -3019,7 +3019,7 @@ function toolRedact(host) {
       if (!affected.length) { status(host, "Draw at least one black box over something to redact first.", "err"); return; }
       go.disabled = true;
       try {
-        status(host, "Redacting on your device — flattening affected pages…");
+        status(host, "Redacting on your device. Flattening affected pages…");
         const affectedSet = new Set(affected);
         // Start from a fresh copy of the source so unaffected pages are byte-preserved.
         const out = await loadForEdit(bytes);
@@ -3056,7 +3056,7 @@ function toolRedact(host) {
         }
         const saved = await out.save();
         await download(saved, `${safeName(name)}-redacted.pdf`);
-        status(host, `Done — redacted ${affected.length} page${affected.length !== 1 ? "s" : ""} (${fmtBytes(saved.length)}). The data under each box is permanently gone; those pages are now flattened images.`, "ok");
+        status(host, `Done. Redacted ${affected.length} page${affected.length !== 1 ? "s" : ""} (${fmtBytes(saved.length)}). The data under each box is permanently gone; those pages are now flattened images.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     }
@@ -3095,10 +3095,10 @@ function toolOcr(host) {
     const js = await loadForRender(bytes);
     const panel = el("div");
     const note = txt("div", "hint",
-      `${name} — ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. Reads text off scanned or photographed pages using on-device OCR (English). ` +
+      `${name}, ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. Reads text off scanned or photographed pages using on-device OCR (English). ` +
       (IS_NATIVE
-        ? `The engine is built into the app — everything runs on this device, offline. Best on clear, upright scans.`
-        : `The first run downloads the recognition engine (~13 MB, one time) — after that it works offline. Best on clear, upright scans.`));
+        ? `The engine is built into the app. Everything runs on this device, offline. Best on clear, upright scans.`
+        : `The first run downloads the recognition engine (~13 MB, one time). After that it works offline. Best on clear, upright scans.`));
     note.style.marginBottom = "12px";
     const ctl = el("div", "controls"); ctl.style.border = "0"; ctl.style.paddingTop = "0";
     const go = txt("button", "btn", "Run OCR & download text");
@@ -3136,7 +3136,7 @@ function toolOcr(host) {
         const chars = text.replace(/--- Page \d+ ---/g, "").trim().length;
         status(host, chars
           ? `Recognized ~${chars.toLocaleString()} characters across ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`
-          : `Finished, but no text was recognized — the pages may be blank, very low-resolution, or not text.`, chars ? "ok" : "err");
+          : `Finished, but no text was recognized. The pages may be blank, very low-resolution, or not text.`, chars ? "ok" : "err");
       } catch (e) {
         status(host, friendly(e), "err");
       } finally {
@@ -3181,7 +3181,7 @@ if (IS_NATIVE) {
     if (res && res.ok) { onProUnlocked({ announceRestore: true }); }
     // Web-buyer clause: web Pro and App Store Pro are separate purchases, so a web owner
     // must not be sent hunting through Apple Accounts. Longer toast so it's readable.
-    else { showToast("No previous purchase found for this Apple Account. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", 9000); }
+    else { showToast("No previous purchase found for this Apple Account. Bought on the web? Web and App Store purchases are separate. Your code works in your browser.", 9000); }
   };
 } else {
   $("#footerRestoreLink").onclick = () => showRestoreEntryModal();
@@ -3201,8 +3201,8 @@ if (IS_NATIVE) {
     if (!upb) return;
     const priceEl = upb.querySelector(".unlock-pro-price");
     if (priceEl) priceEl.textContent = p + " · one-time";
-    upb.title = "Batch-process a whole folder into one ZIP — " + p + " · one-time";
-    upb.setAttribute("aria-label", "Unlock Pro — batch-process a whole folder into one ZIP, " + p + " one-time");
+    upb.title = "Batch-process a whole folder into one ZIP, " + p + " · one-time";
+    upb.setAttribute("aria-label", "Unlock Pro. Batch-process a whole folder into one ZIP, " + p + " one-time");
   });
 }
 
@@ -3331,7 +3331,7 @@ initBilling();
       box.appendChild(txt("div", "restore-code-value", existing));
       modal.appendChild(box);
       modal.appendChild(txt("p", "hint",
-        "The link you opened restores a different code. Switching replaces the code saved on this device — if you haven't saved your license card, the current code can't be recovered here."));
+        "The link you opened restores a different code. Switching replaces the code saved on this device. If you haven't saved your license card, the current code can't be recovered here."));
     } else {
       modal.appendChild(txt("p", "hint",
         "Pro is already unlocked on this device, but no restore code has been saved here yet. The link you opened would move this device onto a different purchase, and this one would be lost. Keep this device's Pro and save a code for it from the Pro menu."));
