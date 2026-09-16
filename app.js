@@ -80,6 +80,10 @@ const bytesToBase64 = (bytes) => { let bin = ""; const chunk = 0x8000; for (let 
 // In the Capacitor native app, <a download> doesn't trigger a save (no browser
 // downloads UI exists in a WKWebView/native WebView) — write to the app's cache
 // then hand off through the native share sheet instead. Plain web is untouched.
+//
+// Returns true when the file was handed off (always true on the web), and false
+// when the person closed the share sheet without choosing anywhere. A false is a
+// quiet no-op: callers show no error and no "done" for it.
 async function download(bytes, filename, type = "application/pdf") {
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
     // Directory is a plain JS enum exported from the @capacitor/filesystem
@@ -92,8 +96,36 @@ async function download(bytes, filename, type = "application/pdf") {
     const { Filesystem } = window.Capacitor.Plugins;
     const { Share } = window.Capacitor.Plugins;
     const { uri } = await Filesystem.writeFile({ path: filename, data: bytesToBase64(bytes), directory: "CACHE" });
-    await Share.share({ title: filename, files: [uri] });
-    return;
+    // The share sheet copies the bytes into whatever destination is picked, so
+    // once it has finished, this cache copy has no further job, and that is
+    // equally true when the sheet was dismissed or the share failed. Removing it
+    // here is what keeps a finished document from sitting on the device after
+    // it has been handed off. Cleanup is silent by design: a delete that does
+    // not succeed is not a failed save, so it never reaches the person, and it
+    // never changes what the caller is told about the share. Two cases leave the
+    // copy for sweepExportCache() at the next launch instead: "sharing is in
+    // progress" (a sheet from an earlier tap is still open and may be holding
+    // this very file name), and Android, where
+    // the chosen app can still be reading the file after this promise settles.
+    const forgetCopy = async () => {
+      try {
+        if (!window.Capacitor.getPlatform || window.Capacitor.getPlatform() !== "ios") return;
+        await Filesystem.deleteFile({ path: filename, directory: "CACHE" });
+      } catch (e) {}
+    };
+    try {
+      await Share.share({ title: filename, files: [uri] });
+    } catch (e) {
+      if (!/in progress/i.test((e && e.message) || "")) await forgetCopy();
+      // Closing the sheet without saving rejects with exactly "Share canceled"
+      // (the Share plugin's own text, iOS SharePlugin.swift and Android
+      // SharePlugin.java). That is an ordinary choice, not a failure, so it is
+      // reported as false instead of thrown. Every other rejection still throws.
+      if (((e && e.message) || "") === "Share canceled") return false;
+      throw e;
+    }
+    await forgetCopy();
+    return true;
   }
   // Safari (desktop and iOS) treats a blob: URL typed as a viewable format
   // (application/pdf, image/*) as content to display and opens its own
@@ -106,16 +138,65 @@ async function download(bytes, filename, type = "application/pdf") {
   const url = URL.createObjectURL(blob);
   const a = el("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
   document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return true;
 }
 // Pro feature: bundle several output files into one .zip instead of triggering
-// N sequential downloads. Returns the zip's byte length so callers can report size.
+// N sequential downloads. Returns the zip's byte length so callers can report size,
+// or false when the share sheet was closed without saving (see download()).
 async function downloadAsZip(files, zipName) {
   const zip = new JSZip();
   files.forEach((f) => zip.file(f.name, f.bytes));
   const blob = await zip.generateAsync({ type: "blob" });
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  await download(bytes, zipName, "application/zip");
+  if (!(await download(bytes, zipName, "application/zip"))) return false;
   return bytes.length;
+}
+
+// ── Export cache sweep (native only) ────────────────────────────────
+// download() removes each file as soon as the share sheet is done with it, so in
+// the ordinary run of things nothing is left behind. A copy can still outlive
+// that: iOS can put the app away mid-share, a delete can simply not succeed, and
+// on Android the copy is deliberately left for this sweep. So at start we look
+// once for those stragglers and clear them.
+//
+// Deliberately NOT a blanket clear of the cache directory. It considers only
+// plain files at the top level of that directory, the one place download()
+// writes, and among those only names download() itself produces: characters
+// safeName() allows, ending in an extension this app writes (.pdf from every PDF
+// tool, .zip from the Pro ZIPs, .png/.jpg from PDF → Images and the license
+// card, .txt from Extract text and OCR). Anything else in there, the web
+// engine's own caches and any subdirectory included, is left alone.
+//
+// Best effort from end to end: every step is guarded, and a sweep that cannot
+// run costs nothing. It is started off the boot path (see the call under
+// initBilling() below), so it never sits between someone and their first tool.
+const EXPORT_FILE_NAME = /^[\w.-]*\.(pdf|zip|png|jpg|txt)$/;
+
+async function sweepExportCache() {
+  // Same native check as download(): the web writes no such file at all.
+  if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
+  // Only a fresh launch sweeps. iOS can restart the web view's own process (it
+  // reloads the page) while the app, and any share sheet or Files picker it has
+  // open, stays alive; that sheet may still need its file, and what this page knew
+  // about it is gone. A copy skipped here is cleared at the next launch.
+  try {
+    const nav = performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null;
+    if (nav ? nav.type !== "navigate" : (performance.navigation && performance.navigation.type !== 0)) return;
+  } catch (e) {}
+  const Filesystem = window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
+  if (!Filesystem) return;
+  let listing;
+  try { listing = await Filesystem.readdir({ path: "", directory: "CACHE" }); }
+  catch (e) { return; }
+  const entries = (listing && listing.files) || [];
+  for (const entry of entries) {
+    // Capacitor 7 returns {name, type, ...}; the string form is what older
+    // versions of this plugin returned, kept so a shape change cannot throw.
+    const name = typeof entry === "string" ? entry : ((entry && entry.name) || "");
+    const isDir = typeof entry === "string" ? false : (entry && entry.type) === "directory";
+    if (isDir || !EXPORT_FILE_NAME.test(name)) continue;
+    try { await Filesystem.deleteFile({ path: name, directory: "CACHE" }); } catch (e) {}
+  }
 }
 // Local PDF has no single "rebuild the whole UI" function (the hub/workspace tools render
 // themselves once and gate Pro features inline) — after a Pro-status change the closest
@@ -372,7 +453,7 @@ function showCelebrationModal(code) {
   // The ZIP bullet's "Split" is the legit single-file per-page "Download all as ZIP".
   [
     "Advanced compress. Light or Maximum levels to squeeze PDFs as small as they'll go",
-    "Batch-process a whole folder. Compress or convert dozens of PDFs at once, back in one ZIP",
+    "Batch processing. Compress or convert dozens of PDFs at once, back in one ZIP",
     "“Download all as one ZIP” in Split and PDF → Images",
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(txt("p", "hint celebrate-sub", "What you just unlocked:"));
@@ -829,7 +910,7 @@ function showProModal(context) {
   // which the third bullet covers.
   [
     "Advanced compress. Pick Light or Maximum to control quality vs. how small the file gets.",
-    "Batch-process a whole folder. Compress or convert dozens of PDFs at once and get them all back in one ZIP.",
+    "Batch processing. Compress or convert dozens of PDFs at once and get them all back in one ZIP.",
     "Download all as one ZIP in Split and PDF → Images.",
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(list);
@@ -1164,8 +1245,9 @@ function dropZone(accept, multiple, onFiles) {
   const article = kind === "image" ? "an" : "a";
   zone.setAttribute("aria-label", multiple ? ("Choose " + kind + " files") : ("Choose a " + kind + " file"));
   const big = el("div", "big", DROP_ILLUSTRATION); big.setAttribute("aria-hidden", "true"); zone.appendChild(big);
-  zone.appendChild(txt("h4", null, `Drop ${multiple ? "files" : "a file"} here`));
-  zone.appendChild(txt("p", null, `or click to choose${multiple ? ". Add as many as you like" : ""}. Nothing is uploaded.`));
+  // iPhone has no drag-and-drop or click here, so native reads as a tap-to-choose.
+  zone.appendChild(txt("h4", null, IS_NATIVE ? `Choose ${multiple ? "files" : "a file"}` : `Drop ${multiple ? "files" : "a file"} here`));
+  zone.appendChild(txt("p", null, IS_NATIVE ? "Nothing is uploaded." : `or click to choose${multiple ? ". Add as many as you like" : ""}. Nothing is uploaded.`));
   const input = el("input"); input.type = "file"; input.accept = accept; input.multiple = !!multiple; input.className = "hidden";
   const btn = txt("button", "btn", "Choose " + (multiple ? "files" : "file")); btn.type = "button";
   zone.appendChild(btn); zone.appendChild(input);
@@ -1226,7 +1308,7 @@ const TOOLS = [
   { id: "extract", name: "Extract text", desc: "Save all text from a PDF as a .txt file.", open: toolExtractText },
   { id: "ocr", name: "Scan to text (OCR)", desc: "Read text off scanned or image-only PDFs. Recognized on your device, never uploaded.", open: toolOcr },
   { id: "pagenum", name: "Add page numbers", desc: "Stamp page numbers onto a PDF. Choose the position, format, and size.", open: toolAddPageNumbers },
-  { id: "removemeta", name: "Remove metadata", desc: "Strip hidden author, title, and app info before you share. A quick privacy clean-up.", open: toolRemoveMetadata },
+  { id: "removemeta", name: "Remove metadata", desc: "Strip hidden author, title, and app info before you share.", open: toolRemoveMetadata },
   { id: "watermark", name: "Watermark / stamp", desc: "Stamp “DRAFT”, “CONFIDENTIAL”, or your name across every page. Pick the position, size, and opacity.", open: toolWatermark },
   { id: "fillforms", name: "Fill & flatten forms", desc: "Fill in a PDF form and bake the answers in so they can’t be changed later.", open: toolFillForms },
   { id: "sign", name: "Sign PDF", desc: "Draw or upload your signature and place it on any page. Sign without uploading your document anywhere.", open: toolSign },
@@ -1240,7 +1322,7 @@ const TOOL_CATEGORIES = [
   { id: "cat-organize", name: "Organize PDF", desc: "Reorder, split, and combine pages easily.", tools: ["merge", "split", "organize"] },
   { id: "cat-convert", name: "Convert", desc: "Convert PDFs to and from images, or shrink them down.", tools: ["img2pdf", "pdf2img", "compress"] },
   { id: "cat-extract", name: "Extract & Search", desc: "Find and extract content from your PDFs.", tools: ["search", "extract", "ocr"] },
-  { id: "cat-secure", name: "Edit & secure", desc: "Stamp, clean up, and fill your PDFs before you share them.", tools: ["watermark", "removemeta", "fillforms", "sign", "redact"] },
+  { id: "cat-secure", name: "Edit & secure", desc: "Stamp, fill, sign, redact, and remove metadata from your PDFs before you share them.", tools: ["watermark", "removemeta", "fillforms", "sign", "redact"] },
   { id: "cat-other", name: "Other tools", desc: "More helpful tools to round out your PDFs.", tools: ["pagenum"] },
 ];
 const CAT_ICONS = {
@@ -1378,8 +1460,9 @@ function toolMerge(host) {
       const out = await PDFDocument.create();
       for (const it of items) { const src = await loadForEdit(it.bytes); const pages = await out.copyPages(src, src.getPageIndices()); pages.forEach(p => out.addPage(p)); }
       const bytes = await out.save();
-      await download(bytes, "merged.pdf");
-      status(host, `Done. Merged ${out.getPageCount()} pages (${fmtBytes(bytes.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+      const mergedPages = out.getPageCount();
+      if (await download(bytes, "merged.pdf")) status(host, `Done. Merged ${mergedPages} page${mergedPages !== 1 ? "s" : ""} (${fmtBytes(bytes.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+      else clearInfo(host); // share sheet closed without saving: show nothing
     } catch (e) { status(host, friendly(e), "err"); }
     merged.disabled = false;
   }
@@ -1528,7 +1611,8 @@ function batchFileStage(host, cfg) {
       const zipSize = await downloadAsZip(out, cfg.zipName);
       const okCount = n - failed;
       const note = failed ? ` (${failed} file${failed !== 1 ? "s" : ""} skipped: couldn't be read)` : "";
-      status(host, `Done, ${okCount} file${okCount !== 1 ? "s" : ""} in one ZIP (${fmtBytes(zipSize)})${note}.`, failed ? "info" : "ok");
+      if (zipSize === false) clearInfo(host); // share sheet closed without saving: show nothing
+      else status(host, `Done, ${okCount} file${okCount !== 1 ? "s" : ""} in one ZIP (${fmtBytes(zipSize)})${note}.`, failed ? "info" : "ok");
     } catch (e) { status(host, friendly(e), "err"); }
     batchBtn.disabled = false; clear.disabled = false;
   }
@@ -1541,7 +1625,7 @@ function toolSplit(host) {
     const total = src.getPageCount();
     const panel = el("div");
     const hint = el("div", "hint"); hint.style.marginBottom = "14px";
-    hint.append(document.createTextNode("Loaded "), txt("b", null, name), document.createTextNode(`, ${total} pages.`));
+    hint.append(document.createTextNode("Loaded "), txt("b", null, name), document.createTextNode(`, ${total} page${total !== 1 ? "s" : ""}.`));
     const radios = el("div", "radios");
     radios.innerHTML = `<label><input type="radio" name="mode" value="range" checked> Extract page range into one PDF</label>
       <label><input type="radio" name="mode" value="each"> Split into one PDF per page</label>`;
@@ -1572,16 +1656,19 @@ function toolSplit(host) {
           if (!idx.length) throw new Error("No valid pages in that range.");
           const out = await PDFDocument.create();
           (await out.copyPages(src, idx)).forEach(p => out.addPage(p));
-          const b = await out.save(); await download(b, `${safeName(name)}-pages.pdf`);
-          status(host, `Extracted ${idx.length} page${idx.length !== 1 ? "s" : ""} (${fmtBytes(b.length)}).`, "ok");
+          const b = await out.save();
+          if (await download(b, `${safeName(name)}-pages.pdf`)) status(host, `Extracted ${idx.length} page${idx.length !== 1 ? "s" : ""} (${fmtBytes(b.length)}).`, "ok");
+          else clearInfo(host); // share sheet closed without saving: show nothing
         } else {
+          let shared = true;
           for (let i = 0; i < total; i++) {
             status(host, `Preparing file ${i + 1} of ${total}…`);
             const out = await PDFDocument.create(); const [pg] = await out.copyPages(src, [i]); out.addPage(pg);
-            await download(await out.save(), `${safeName(name)}-p${String(i + 1).padStart(2, "0")}.pdf`);
+            if (!(await download(await out.save(), `${safeName(name)}-p${String(i + 1).padStart(2, "0")}.pdf`))) { shared = false; break; }
             await new Promise(r => setTimeout(r, 250));
           }
-          status(host, `Split into ${total} files. ${IS_NATIVE ? "Saved to your device." : "Check your downloads folder."}`, "ok");
+          if (shared) status(host, `Split into ${total} files. ${IS_NATIVE ? "Saved to your device." : "Check your downloads folder."}`, "ok");
+          else clearInfo(host); // share sheet closed without saving: stop and show nothing
         }
       } catch (e) { status(host, e.message && e.message.startsWith("No valid") ? e.message : friendly(e), "err"); }
       go.disabled = false;
@@ -1597,7 +1684,8 @@ function toolSplit(host) {
         }
         status(host, "Zipping…");
         const zipSize = await downloadAsZip(files, `${safeName(name)}-split.zip`);
-        status(host, `Downloaded a ZIP with ${total} files (${fmtBytes(zipSize)}).`, "ok");
+        if (zipSize === false) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Downloaded a ZIP with ${total} files (${fmtBytes(zipSize)}).`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       zipBtn.disabled = false;
     };
@@ -1659,8 +1747,9 @@ function toolOrganize(host) {
         const out = await PDFDocument.create();
         const copied = await out.copyPages(src, order.map(o => o.src));
         copied.forEach((pg, i) => { const base = pg.getRotation().angle || 0; pg.setRotation(degrees((base + order[i].rot) % 360)); out.addPage(pg); });
-        const b = await out.save(); await download(b, `${safeName(name)}-organized.pdf`);
-        status(host, `Saved, ${order.length} pages (${fmtBytes(b.length)}).`, "ok");
+        const b = await out.save();
+        if (await download(b, `${safeName(name)}-organized.pdf`)) status(host, `Saved, ${order.length} page${order.length !== 1 ? "s" : ""} (${fmtBytes(b.length)}).`, "ok");
+        else clearInfo(host); // share sheet closed without saving: show nothing
       } catch (e) { status(host, friendly(e), "err"); }
       save.disabled = false;
     }
@@ -1708,9 +1797,10 @@ function toolImg2Pdf(host) {
         } catch { skipped++; }
       }
       if (out.getPageCount() === 0) throw new Error("NO_PAGES");
-      const b = await out.save(); await download(b, "images.pdf");
+      const b = await out.save();
       const note = skipped ? ` (${skipped} image${skipped !== 1 ? "s" : ""} skipped: unsupported format)` : "";
-      status(host, `Created a ${out.getPageCount()}-page PDF (${fmtBytes(b.length)})${note}.`, skipped ? "info" : "ok");
+      if (await download(b, "images.pdf")) status(host, `Created a ${out.getPageCount()}-page PDF (${fmtBytes(b.length)})${note}.`, skipped ? "info" : "ok");
+      else clearInfo(host); // share sheet closed without saving: show nothing
     } catch (e) { status(host, e.message === "NO_PAGES" ? "None of those images could be added. Try PNG or JPG." : friendly(e), "err"); }
     make.disabled = false;
   }
@@ -1784,11 +1874,13 @@ async function singlePdf2ImgPanel(host, bytes, name) {
     go.disabled = true; const f = fmt.value, sc = +scale.value;
     try {
       const files = await pdfToImageFiles(bytes, f, sc, safeName(name), (i, n) => status(host, `Rendering page ${i} of ${n}…`));
+      let shared = true;
       for (const file of files) {
-        await download(file.bytes, file.name, file.type);
+        if (!(await download(file.bytes, file.name, file.type))) { shared = false; break; }
         await new Promise(r => setTimeout(r, 220));
       }
-      status(host, `Exported ${js.numPages} image${js.numPages !== 1 ? "s" : ""}. ${IS_NATIVE ? "Saved to your device." : "Check your downloads."}`, "ok");
+      if (shared) status(host, `Exported ${js.numPages} image${js.numPages !== 1 ? "s" : ""}. ${IS_NATIVE ? "Saved to your device." : "Check your downloads."}`, "ok");
+      else clearInfo(host); // share sheet closed without saving: stop and show nothing
     } catch (e) { status(host, friendly(e), "err"); }
     go.disabled = false;
   };
@@ -1798,7 +1890,8 @@ async function singlePdf2ImgPanel(host, bytes, name) {
       const files = await pdfToImageFiles(bytes, f, sc, safeName(name), (i, n) => status(host, `Rendering page ${i} of ${n}…`));
       status(host, "Zipping…");
       const zipSize = await downloadAsZip(files, `${safeName(name)}-images.zip`);
-      status(host, `Downloaded a ZIP with ${js.numPages} image${js.numPages !== 1 ? "s" : ""} (${fmtBytes(zipSize)}).`, "ok");
+      if (zipSize === false) clearInfo(host); // share sheet closed without saving: show nothing
+      else status(host, `Downloaded a ZIP with ${js.numPages} image${js.numPages !== 1 ? "s" : ""} (${fmtBytes(zipSize)}).`, "ok");
     } catch (e) { status(host, friendly(e), "err"); }
     zipBtn.disabled = false;
   };
@@ -2191,8 +2284,8 @@ function toolExtractText(host) {
         const text = parts.join("\n\n");
         // Reuse download(): it forces application/octet-stream internally (Safari
         // workaround) and the .txt extension makes it open as plain text.
-        await download(new TextEncoder().encode(text), `${safeName(name)}.txt`, "text/plain");
-        status(host, `Extracted text from ${js.numPages} page${js.numPages !== 1 ? "s" : ""} (~${text.length.toLocaleString()} characters). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        if (!(await download(new TextEncoder().encode(text), `${safeName(name)}.txt`, "text/plain"))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Extracted text from ${js.numPages} page${js.numPages !== 1 ? "s" : ""} (~${text.length.toLocaleString()} characters). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2332,8 +2425,8 @@ function toolAddPageNumbers(host) {
           });
         });
         const out = await doc.save();
-        await download(out, `${safeName(name)}-numbered.pdf`);
-        status(host, `Done. Numbered ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        if (!(await download(out, `${safeName(name)}-numbered.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Numbered ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2381,8 +2474,8 @@ function toolRemoveMetadata(host) {
         const epoch = new Date(0);
         try { doc.setCreationDate(epoch); doc.setModificationDate(epoch); } catch {}
         const out = await doc.save();
-        await download(out, `${safeName(name)}-clean.pdf`);
-        status(host, `Done. Metadata cleared and saved as a clean copy (${fmtBytes(out.length)}). Your original file is unchanged.`, "ok");
+        if (!(await download(out, `${safeName(name)}-clean.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Metadata cleared and saved as a clean copy (${fmtBytes(out.length)}). Your original file is unchanged.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2490,8 +2583,8 @@ function toolWatermark(host) {
           }
         });
         const out = await doc.save();
-        await download(out, `${safeName(name)}-watermarked.pdf`);
-        status(host, `Done. Watermarked ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        if (!(await download(out, `${safeName(name)}-watermarked.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Watermarked ${total} page${total !== 1 ? "s" : ""} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2607,8 +2700,8 @@ function toolFillForms(host) {
         readers.forEach((apply) => apply());
         try { form.flatten(); } catch (e) { /* flatten can throw on exotic forms */ throw e; }
         const out = await doc.save();
-        await download(out, `${safeName(name)}-filled.pdf`);
-        status(host, `Done. Filled and flattened ${fields.length} field${fields.length !== 1 ? "s" : ""} (${fmtBytes(out.length)}). The values are now baked in and can't be edited.`, "ok");
+        if (!(await download(out, `${safeName(name)}-filled.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Filled and flattened ${fields.length} field${fields.length !== 1 ? "s" : ""} (${fmtBytes(out.length)}). The values are now baked in and can't be edited.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     };
@@ -2870,8 +2963,8 @@ function toolSign(host) {
 
         page.drawImage(img, { x, y, width: sw, height: sh });
         const out = await doc.save();
-        await download(out, `${safeName(name)}-signed.pdf`);
-        status(host, `Done. Signature placed on page ${pn} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
+        if (!(await download(out, `${safeName(name)}-signed.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Signature placed on page ${pn} (${fmtBytes(out.length)}). ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`, "ok");
       } catch (e) {
         status(host, e && e.message === "SIG_EMBED" ? "Couldn't use that signature image. Try a PNG or JPG." : friendly(e), "err");
       }
@@ -3055,8 +3148,8 @@ function toolRedact(host) {
           fresh.drawImage(jpg, { x: 0, y: 0, width: pw, height: ph });
         }
         const saved = await out.save();
-        await download(saved, `${safeName(name)}-redacted.pdf`);
-        status(host, `Done. Redacted ${affected.length} page${affected.length !== 1 ? "s" : ""} (${fmtBytes(saved.length)}). The data under each box is permanently gone; those pages are now flattened images.`, "ok");
+        if (!(await download(saved, `${safeName(name)}-redacted.pdf`))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, `Done. Redacted ${affected.length} page${affected.length !== 1 ? "s" : ""} (${fmtBytes(saved.length)}). The data under each box is permanently gone; those pages are now flattened images.`, "ok");
       } catch (e) { status(host, friendly(e), "err"); }
       go.disabled = false;
     }
@@ -3132,9 +3225,9 @@ function toolOcr(host) {
           cv.width = cv.height = 0;
         }
         const text = parts.join("\n\n");
-        await download(new TextEncoder().encode(text), `${safeName(name)}-ocr.txt`, "text/plain");
         const chars = text.replace(/--- Page \d+ ---/g, "").trim().length;
-        status(host, chars
+        if (!(await download(new TextEncoder().encode(text), `${safeName(name)}-ocr.txt`, "text/plain"))) clearInfo(host); // share sheet closed without saving: show nothing
+        else status(host, chars
           ? `Recognized ~${chars.toLocaleString()} characters across ${js.numPages} page${js.numPages !== 1 ? "s" : ""}. ${IS_NATIVE ? "Saved to your device." : "Saved to your downloads."}`
           : `Finished, but no text was recognized. The pages may be blank, very low-resolution, or not text.`, chars ? "ok" : "err");
       } catch (e) {
@@ -3201,8 +3294,8 @@ if (IS_NATIVE) {
     if (!upb) return;
     const priceEl = upb.querySelector(".unlock-pro-price");
     if (priceEl) priceEl.textContent = p + " · one-time";
-    upb.title = "Batch-process a whole folder into one ZIP, " + p + " · one-time";
-    upb.setAttribute("aria-label", "Unlock Pro. Batch-process a whole folder into one ZIP, " + p + " one-time");
+    upb.title = "Batch-process many PDFs into one ZIP, " + p + " · one-time";
+    upb.setAttribute("aria-label", "Unlock Pro. Batch-process many PDFs into one ZIP, " + p + " one-time");
   });
 }
 
@@ -3265,6 +3358,16 @@ async function initBilling() {
 })();
 
 initBilling();
+// Clear any export file a previous run left in the cache (see sweepExportCache).
+// Native only, so the web build never even queues it; started after load in its
+// own task, so nothing about it can hold up the first paint or the first tool.
+if (IS_NATIVE) {
+  try {
+    const startSweep = () => { setTimeout(() => { try { sweepExportCache().catch(() => {}); } catch (e) {} }, 0); };
+    if (document.readyState === "complete") startSweep();
+    else window.addEventListener("load", startSweep, { once: true });
+  } catch (e) {}
+}
 
 
 /* Offline support (progressive enhancement): register the service worker ONLY
