@@ -406,7 +406,7 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: var(--chip-shadow);
 }
 .tool .ico svg { width: 24px; height: 24px; }
-.tool h3 { font-size: 16px; font-weight: 700; }
+.tool h3 { font-size: 16px; font-weight: 700; padding-right: 40px; }
 .tool p { font-size: 13.5px; color: var(--muted); padding-right: 34px; }
 /* Decorative "open" arrow chip, bottom-right (design4). aria-hidden in JS. */
 .tool .go {

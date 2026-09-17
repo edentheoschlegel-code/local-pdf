@@ -1357,7 +1357,6 @@ function buildHub() {
     head.appendChild(el("span", "cat-ico " + cat.id, CAT_ICONS[cat.id]));
     const headText = el("div", "cat-head-text");
     headText.appendChild(txt("h2", "cat-name", cat.name));
-    headText.appendChild(txt("p", "cat-desc", cat.desc));
     head.appendChild(headText);
     section.appendChild(head);
     const row = el("div", "grid");
@@ -1368,7 +1367,6 @@ function buildHub() {
       card.type = "button";
       card.appendChild(el("div", "ico", ICONS[t.id]));
       card.appendChild(txt("h3", null, t.name));
-      card.appendChild(txt("p", null, t.desc));
       // Pro-gated tools carry a small "Pro" badge — but never for an owner (they've
       // already unlocked it, so the upsell tag would be noise). Constant markup.
       if (t.pro && !safeBilling(() => Billing.isPro(), false)) {
